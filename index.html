@@ -192,7 +192,7 @@
       </div>
       <div class="topbar-credit">
         <span id="creditLine1">พัฒนาโดย <strong>Assoc. Prof. Ratchadaporn Ungcharoen</strong></span><br>
-        Faculty of Public Health, Kasetsart University, 2026
+        Faculty of Public Health, Kasetsart University 2026
       </div>
     </div>
   </header>
@@ -247,7 +247,8 @@
 
   <footer class="app-footer">
     <p id="footerLine1">Sample Simple ออกแบบและพัฒนาโดย <strong>Assoc. Prof. Ratchadaporn Ungcharoen</strong></p>
-    <p>Faculty of Public Health, Kasetsart University, 2026</p>
+    <p>Faculty of Public Health, Kasetsart University 2026</p>
+    <p id="copyrightLine" style="margin-top:10px;font-size:12px;">© 2026 Ratchadaporn Ungcharoen. สงวนลิขสิทธิ์ตามพระราชบัญญัติลิขสิทธิ์ พ.ศ. 2537</p>
   </footer>
 </div>
 
@@ -270,6 +271,7 @@
       copyBtn:'คัดลอกสรุปผล', printBtn:'พิมพ์ / บันทึก PDF',
       creditLine1:'พัฒนาโดย <strong>Assoc. Prof. Ratchadaporn Ungcharoen</strong>',
       footerLine1:'Sample Simple ออกแบบและพัฒนาโดย <strong>Assoc. Prof. Ratchadaporn Ungcharoen</strong>',
+      copyrightLine:'© 2026 Ratchadaporn Ungcharoen. สงวนลิขสิทธิ์ตามพระราชบัญญัติลิขสิทธิ์ พ.ศ. 2537',
       aboutTitle:'เกี่ยวกับสูตรและข้อมูลอ้างอิง', refTitle:'บรรณานุกรม / เอกสารอ้างอิง (References)',
       aboutBody:'<p>Sample Simple คำนวณขนาดตัวอย่างด้วยสูตรมาตรฐานที่ใช้สอนและใช้จริงในงานวิจัยด้านสาธารณสุขและการแพทย์ ได้แก่ สูตร Cochran, Krejcie &amp; Morgan, Taro Yamane สำหรับการประมาณค่า; สูตร Fleiss และการทดสอบค่าเฉลี่ยสำหรับการเปรียบเทียบระหว่างกลุ่ม; สูตร Schlesselman สำหรับ Case-Control; สูตรดัดแปลงจาก Fleiss สำหรับ Cohort; การแปลง Fisher\'s Z สำหรับสหสัมพันธ์; สูตร Buderer สำหรับความไว-ความจำเพาะ; และแนวทางของ Green สำหรับการถดถอยพหุคูณ</p>'+
         '<p>ค่า Z ที่ใช้ในการคำนวณคำนวณจากฟังก์ชันการแจกแจงปกติผกผัน (inverse normal CDF) จึงสามารถกำหนดระดับความเชื่อมั่นและอำนาจการทดสอบ (power) เป็นค่าใดก็ได้ ไม่จำกัดเฉพาะ 90/95/99% หรือ 80/90/95%</p>'+
@@ -284,6 +286,7 @@
       copyBtn:'Copy Summary', printBtn:'Print / Save as PDF',
       creditLine1:'Developed by <strong>Assoc. Prof. Ratchadaporn Ungcharoen</strong>',
       footerLine1:'Sample Simple was designed and developed by <strong>Assoc. Prof. Ratchadaporn Ungcharoen</strong>',
+      copyrightLine:'© 2026 Ratchadaporn Ungcharoen. All rights reserved under the Copyright Act B.E. 2537 (1994).',
       aboutTitle:'About the Formulas &amp; References', refTitle:'Bibliography / References',
       aboutBody:'<p>Sample Simple calculates sample sizes using standard formulas taught and used in real public health and medical research, including Cochran\'s, Krejcie &amp; Morgan\'s, and Taro Yamane\'s formulas for estimation; Fleiss\'s formula and mean-comparison tests for group comparisons; Schlesselman\'s formula for case-control studies; a modified Fleiss formula for cohort studies; Fisher\'s Z transformation for correlation; Buderer\'s formula for sensitivity/specificity; and Green\'s guideline for multiple regression.</p>'+
         '<p>The Z-values used are computed from the inverse normal CDF, so any confidence level and statistical power can be entered — not just the preset 90/95/99% or 80/90/95%.</p>'+
@@ -1171,6 +1174,7 @@
     document.getElementById('printBtnLabel').textContent = T('printBtn');
     document.getElementById('creditLine1').innerHTML = T('creditLine1');
     document.getElementById('footerLine1').innerHTML = T('footerLine1');
+    document.getElementById('copyrightLine').textContent = T('copyrightLine');
     document.getElementById('aboutTitle').innerHTML = T('aboutTitle');
     document.getElementById('refTitle').innerHTML = T('refTitle');
     document.getElementById('aboutBody').innerHTML = T('aboutBody');
