@@ -128,9 +128,14 @@
   .breakdown summary::before{content:'▸ ';}
   .breakdown[open] summary::before{content:'▾ ';}
   .breakdown-body{margin-top:10px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;overflow-x:auto;}
-  .f-line{font-size:14.5px;padding:3px 0;white-space:nowrap;}
+  .f-line{font-size:14.5px;padding:3px 0;white-space:normal;word-break:break-word;line-height:1.6;}
   .f-formula{font-family:var(--font-display);font-style:italic;color:var(--forest-2);}
   .f-sub{color:var(--text-muted);font-size:13.5px;}
+  .f-def-title{font-weight:600;color:var(--text);margin:10px 0 4px;font-size:13.5px;}
+  .f-def-list{margin:0 0 10px;padding-left:20px;}
+  .f-def-list li{font-size:13.5px;color:var(--text-muted);margin-bottom:4px;line-height:1.65;}
+  .f-sym{font-family:var(--font-display);font-style:italic;color:var(--forest-2);}
+  .f-conclusion{margin-top:12px;padding-top:12px;border-top:1px dashed var(--border-strong);font-size:14px;color:var(--text);font-weight:500;line-height:1.7;}
 
   .result-actions{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;}
   .btn-secondary{background:var(--surface);border:1px solid var(--border-strong);color:var(--green);padding:9px 16px;border-radius:9px;cursor:pointer;font-size:13.5px;font-weight:500;display:inline-flex;align-items:center;gap:6px;transition:all .15s ease;box-shadow:var(--shadow-btn);}
@@ -282,6 +287,13 @@
     return Math.ceil(x);
   }
 
+  function defBlock(rows){
+    return '<div class="f-def-title">โดยที่</div><ul class="f-def-list">'+rows.map(function(r){return '<li>'+r+'</li>';}).join('')+'</ul>';
+  }
+  function concludeLine(text){
+    return '<div class="f-conclusion">'+text+'</div>';
+  }
+
   function adjustPop(n0, common){
     var n=n0, fpcApplied=false;
     if(common.popType==='finite' && common.N>0 && common.N>n0){
@@ -331,8 +343,15 @@
         var adj=adjustPop(n0, common);
         var breakdown =
           '<div class="f-line"><span class="f-formula">n₀ = Z² · p(1−p) / d²</span></div>'+
-          '<div class="f-line f-sub">= '+fmt(Za,3)+'² × '+fmt(pf,4)+' × '+fmt(1-pf,4)+' / '+fmt(df,4)+'²</div>'+
-          '<div class="f-line f-sub">= '+fmt(n0,2)+' ราย</div>';
+          defBlock([
+            '<span class="f-sym">n₀</span> = ขนาดกลุ่มตัวอย่างที่คำนวณได้',
+            '<span class="f-sym">Z</span> = ค่ามาตรฐานปกติ ณ ระดับความเชื่อมั่น '+fmt(common.confPct,0)+'% (Z = '+fmt(Za,3)+')',
+            '<span class="f-sym">p</span> = สัดส่วนของลักษณะที่สนใจศึกษาที่คาดว่าจะพบในประชากร (p = '+fmt(pf,2)+')',
+            '<span class="f-sym">d</span> = ค่าความคลาดเคลื่อนที่ยอมรับได้ (d = '+fmt(df,2)+')'
+          ])+
+          '<div class="f-line f-sub">แทนค่า: n₀ = ('+fmt(Za,3)+')² × '+fmt(pf,4)+'(1−'+fmt(pf,4)+') / ('+fmt(df,4)+')²</div>'+
+          '<div class="f-line f-sub">n₀ = '+fmt(n0,2)+'</div>'+
+          concludeLine('ดังนั้น ขนาดกลุ่มตัวอย่างที่เหมาะสมสำหรับการวิจัยครั้งนี้ เท่ากับ '+fmtInt(adj.nFinal)+' ราย');
         return {kind:'single', n0:n0, adj:adj, breakdown:breakdown};
       }
     },
@@ -361,11 +380,18 @@
         var adj=adjustPop(n0, common);
         var isClassic = (common.confPct===95 && Math.abs(P-0.5)<1e-6 && Math.abs(d-0.05)<1e-6);
         var breakdown =
-          '<div class="f-line f-sub">X² (chi-square, 1 df) = Z² = '+fmt(X2,4)+'</div>'+
           '<div class="f-line"><span class="f-formula">n = X²·N·P(1−P) / [d²(N−1) + X²·P(1−P)]</span></div>'+
-          '<div class="f-line f-sub">= ('+fmt(X2,3)+'×'+fmtInt(N)+'×'+fmt(P,3)+'×'+fmt(1-P,3)+') / ('+fmt(d,3)+'²×('+fmtInt(N)+'−1) + '+fmt(X2,3)+'×'+fmt(P,3)+'×'+fmt(1-P,3)+')</div>'+
-          '<div class="f-line f-sub">= '+fmt(n0,2)+' ราย</div>'+
-          (isClassic?'<div class="f-line f-sub" style="margin-top:6px;">✓ ค่าที่ใช้ตรงกับตารางต้นฉบับของ Krejcie &amp; Morgan (1970) (P=0.5, d=0.05, 95% CI)</div>':'');
+          defBlock([
+            '<span class="f-sym">n</span> = ขนาดกลุ่มตัวอย่าง',
+            '<span class="f-sym">X²</span> = ค่าไคสแควร์ที่องศาอิสระเท่ากับ 1 ณ ระดับความเชื่อมั่น '+fmt(common.confPct,0)+'% (X² = '+fmt(X2,3)+')',
+            '<span class="f-sym">N</span> = ขนาดประชากร (N = '+fmtInt(N)+')',
+            '<span class="f-sym">P</span> = สัดส่วนของประชากร (P = '+fmt(P,2)+')',
+            '<span class="f-sym">d</span> = ระดับความคลาดเคลื่อนที่ยอมรับได้ (d = '+fmt(d,2)+')'
+          ])+
+          '<div class="f-line f-sub">แทนค่า: n = ('+fmt(X2,3)+')('+fmtInt(N)+')('+fmt(P,3)+')(1−'+fmt(P,3)+') / [('+fmt(d,3)+')²('+fmtInt(N)+'−1) + ('+fmt(X2,3)+')('+fmt(P,3)+')(1−'+fmt(P,3)+')]</div>'+
+          '<div class="f-line f-sub">n = '+fmt(n0,2)+'</div>'+
+          (isClassic?'<div class="f-line f-sub" style="margin-top:4px;">✓ ค่าที่ใช้ตรงกับตารางต้นฉบับของ Krejcie &amp; Morgan (1970) (P=0.5, d=0.05, ความเชื่อมั่น 95%)</div>':'')+
+          concludeLine('ดังนั้น ขนาดกลุ่มตัวอย่างที่เหมาะสมสำหรับการวิจัยครั้งนี้ เท่ากับ '+fmtInt(adj.nFinal)+' ราย');
         return {kind:'single', n0:n0, adj:adj, breakdown:breakdown};
       }
     },
@@ -389,9 +415,15 @@
         var adj = adjustPop(n0, common);
         var breakdown =
           '<div class="f-line"><span class="f-formula">n = N / (1 + N·e²)</span></div>'+
-          '<div class="f-line f-sub">= '+fmtInt(N)+' / (1 + '+fmtInt(N)+'×'+fmt(e,4)+'²)</div>'+
-          '<div class="f-line f-sub">= '+fmt(n0,2)+' ราย</div>'+
-          '<div class="f-line f-sub" style="margin-top:6px;">หมายเหตุ: สูตรนี้กำหนดความเชื่อมั่น 95% และ P=0.5 ไว้ในตัวสูตรแล้ว (ประมาณค่า Z²P(1−P)≈1)</div>';
+          defBlock([
+            '<span class="f-sym">n</span> = ขนาดกลุ่มตัวอย่าง',
+            '<span class="f-sym">N</span> = ขนาดประชากร (N = '+fmtInt(N)+')',
+            '<span class="f-sym">e</span> = ค่าความคลาดเคลื่อนที่ยอมรับได้ (e = '+fmt(e,2)+')'
+          ])+
+          '<div class="f-line f-sub">แทนค่า: n = '+fmtInt(N)+' / (1 + '+fmtInt(N)+'×('+fmt(e,4)+')²)</div>'+
+          '<div class="f-line f-sub">n = '+fmt(n0,2)+'</div>'+
+          '<div class="f-line f-sub" style="margin-top:4px;">หมายเหตุ: สูตรนี้กำหนดระดับความเชื่อมั่น 95% และ P=0.5 ไว้ในตัวสูตรแล้ว (ประมาณค่า Z²P(1−P)≈1)</div>'+
+          concludeLine('ดังนั้น ขนาดกลุ่มตัวอย่างที่เหมาะสมสำหรับการวิจัยครั้งนี้ เท่ากับ '+fmtInt(adj.nFinal)+' ราย');
         return {kind:'single', n0:n0, adj:adj, breakdown:breakdown};
       }
     },
@@ -415,8 +447,15 @@
         var adj=adjustPop(n0, common);
         var breakdown =
           '<div class="f-line"><span class="f-formula">n₀ = Z² · σ² / d²</span></div>'+
-          '<div class="f-line f-sub">= '+fmt(Za,3)+'² × '+fmt(sd,2)+'² / '+fmt(d,2)+'²</div>'+
-          '<div class="f-line f-sub">= '+fmt(n0,2)+' ราย</div>';
+          defBlock([
+            '<span class="f-sym">n₀</span> = ขนาดกลุ่มตัวอย่าง',
+            '<span class="f-sym">Z</span> = ค่ามาตรฐานปกติ ณ ระดับความเชื่อมั่น '+fmt(common.confPct,0)+'% (Z = '+fmt(Za,3)+')',
+            '<span class="f-sym">σ</span> = ส่วนเบี่ยงเบนมาตรฐานของตัวแปรที่ศึกษา (σ = '+fmt(sd,2)+')',
+            '<span class="f-sym">d</span> = ค่าความคลาดเคลื่อนที่ยอมรับได้ (d = '+fmt(d,2)+')'
+          ])+
+          '<div class="f-line f-sub">แทนค่า: n₀ = ('+fmt(Za,3)+')² × ('+fmt(sd,2)+')² / ('+fmt(d,2)+')²</div>'+
+          '<div class="f-line f-sub">n₀ = '+fmt(n0,2)+'</div>'+
+          concludeLine('ดังนั้น ขนาดกลุ่มตัวอย่างที่เหมาะสมสำหรับการวิจัยครั้งนี้ เท่ากับ '+fmtInt(adj.nFinal)+' ราย');
         return {kind:'single', n0:n0, adj:adj, breakdown:breakdown};
       }
     },
@@ -441,9 +480,17 @@
         var n0 = (num*num)/((p1-p2)*(p1-p2));
         var adj=adjustPop(n0, common);
         var breakdown =
-          '<div class="f-line f-sub">p̄ = (p1+p2)/2 = '+fmt(pbar,4)+'</div>'+
           '<div class="f-line"><span class="f-formula">n₀ = [Z·√(2p̄(1−p̄)) + Z<sub>β</sub>·√(p1(1−p1)+p2(1−p2))]² / (p1−p2)²</span></div>'+
-          '<div class="f-line f-sub">= '+fmt(n0,2)+' ราย/กลุ่ม</div>';
+          defBlock([
+            '<span class="f-sym">n₀</span> = ขนาดกลุ่มตัวอย่างต่อกลุ่ม',
+            '<span class="f-sym">Z</span> = ค่ามาตรฐานปกติ ณ ระดับความเชื่อมั่น '+fmt(common.confPct,0)+'% (Z = '+fmt(Za,3)+')',
+            '<span class="f-sym">Z<sub>β</sub></span> = ค่ามาตรฐานปกติ ณ อำนาจการทดสอบ '+fmt(common.powPct,0)+'% (Z<sub>β</sub> = '+fmt(Zb,3)+')',
+            '<span class="f-sym">p1, p2</span> = สัดส่วนที่คาดว่าจะพบในกลุ่มที่ 1 และกลุ่มที่ 2 (p1 = '+fmt(p1,2)+', p2 = '+fmt(p2,2)+')',
+            '<span class="f-sym">p̄</span> = สัดส่วนเฉลี่ยของทั้งสองกลุ่ม (p̄ = (p1+p2)/2 = '+fmt(pbar,4)+')'
+          ])+
+          '<div class="f-line f-sub">แทนค่า: n₀ = ['+fmt(Za,3)+'×√(2×'+fmt(pbar,4)+'(1−'+fmt(pbar,4)+')) + '+fmt(Zb,3)+'×√('+fmt(p1,3)+'(1−'+fmt(p1,3)+')+'+fmt(p2,3)+'(1−'+fmt(p2,3)+'))]² / ('+fmt(p1,3)+'−'+fmt(p2,3)+')²</div>'+
+          '<div class="f-line f-sub">n₀ = '+fmt(n0,2)+' ต่อกลุ่ม</div>'+
+          concludeLine('ดังนั้น ขนาดกลุ่มตัวอย่างที่เหมาะสมสำหรับการวิจัยครั้งนี้ เท่ากับกลุ่มละ '+fmtInt(adj.nFinal)+' ราย รวมทั้งสิ้น '+fmtInt(ceilOrDash(adj.nFinal)*2)+' ราย');
         return {kind:'twoGroup', n0:n0, adj:adj, breakdown:breakdown};
       }
     },
@@ -467,8 +514,16 @@
         var adj=adjustPop(n0, common);
         var breakdown =
           '<div class="f-line"><span class="f-formula">n₀ = 2(Z + Z<sub>β</sub>)² · σ² / Δ²</span></div>'+
-          '<div class="f-line f-sub">= 2×('+fmt(Za,3)+' + '+fmt(Zb,3)+')² × '+fmt(sd,2)+'² / '+fmt(delta,2)+'²</div>'+
-          '<div class="f-line f-sub">= '+fmt(n0,2)+' ราย/กลุ่ม</div>';
+          defBlock([
+            '<span class="f-sym">n₀</span> = ขนาดกลุ่มตัวอย่างต่อกลุ่ม',
+            '<span class="f-sym">Z</span> = ค่ามาตรฐานปกติ ณ ระดับความเชื่อมั่น '+fmt(common.confPct,0)+'% (Z = '+fmt(Za,3)+')',
+            '<span class="f-sym">Z<sub>β</sub></span> = ค่ามาตรฐานปกติ ณ อำนาจการทดสอบ '+fmt(common.powPct,0)+'% (Z<sub>β</sub> = '+fmt(Zb,3)+')',
+            '<span class="f-sym">σ</span> = ส่วนเบี่ยงเบนมาตรฐานร่วมของทั้งสองกลุ่ม (σ = '+fmt(sd,2)+')',
+            '<span class="f-sym">Δ</span> = ผลต่างของค่าเฉลี่ยที่ต้องการตรวจพบ (Δ = '+fmt(delta,2)+')'
+          ])+
+          '<div class="f-line f-sub">แทนค่า: n₀ = 2×('+fmt(Za,3)+' + '+fmt(Zb,3)+')² × ('+fmt(sd,2)+')² / ('+fmt(delta,2)+')²</div>'+
+          '<div class="f-line f-sub">n₀ = '+fmt(n0,2)+' ต่อกลุ่ม</div>'+
+          concludeLine('ดังนั้น ขนาดกลุ่มตัวอย่างที่เหมาะสมสำหรับการวิจัยครั้งนี้ เท่ากับกลุ่มละ '+fmtInt(adj.nFinal)+' ราย รวมทั้งสิ้น '+fmtInt(ceilOrDash(adj.nFinal)*2)+' ราย');
         return {kind:'twoGroup', n0:n0, adj:adj, breakdown:breakdown};
       }
     },
@@ -492,8 +547,16 @@
         var adj=adjustPop(n0, common);
         var breakdown =
           '<div class="f-line"><span class="f-formula">n₀ = (Z + Z<sub>β</sub>)² · σ<sub>d</sub>² / δ²</span></div>'+
-          '<div class="f-line f-sub">= ('+fmt(Za,3)+' + '+fmt(Zb,3)+')² × '+fmt(sd,2)+'² / '+fmt(delta,2)+'²</div>'+
-          '<div class="f-line f-sub">= '+fmt(n0,2)+' ราย</div>';
+          defBlock([
+            '<span class="f-sym">n₀</span> = ขนาดกลุ่มตัวอย่าง',
+            '<span class="f-sym">Z</span> = ค่ามาตรฐานปกติ ณ ระดับความเชื่อมั่น '+fmt(common.confPct,0)+'% (Z = '+fmt(Za,3)+')',
+            '<span class="f-sym">Z<sub>β</sub></span> = ค่ามาตรฐานปกติ ณ อำนาจการทดสอบ '+fmt(common.powPct,0)+'% (Z<sub>β</sub> = '+fmt(Zb,3)+')',
+            '<span class="f-sym">σ<sub>d</sub></span> = ส่วนเบี่ยงเบนมาตรฐานของค่าที่วัด หรือของผลต่างคู่ (σ<sub>d</sub> = '+fmt(sd,2)+')',
+            '<span class="f-sym">δ</span> = ผลต่างที่ต้องการตรวจพบ (δ = '+fmt(delta,2)+')'
+          ])+
+          '<div class="f-line f-sub">แทนค่า: n₀ = ('+fmt(Za,3)+' + '+fmt(Zb,3)+')² × ('+fmt(sd,2)+')² / ('+fmt(delta,2)+')²</div>'+
+          '<div class="f-line f-sub">n₀ = '+fmt(n0,2)+'</div>'+
+          concludeLine('ดังนั้น ขนาดกลุ่มตัวอย่างที่เหมาะสมสำหรับการวิจัยครั้งนี้ เท่ากับ '+fmtInt(adj.nFinal)+' ราย');
         return {kind:'single', n0:n0, adj:adj, breakdown:breakdown};
       }
     },
@@ -520,10 +583,20 @@
         var n0 = (num*num)/((p1-p0)*(p1-p0));
         var adj=adjustPop(n0, common);
         var breakdown =
-          '<div class="f-line f-sub">สัดส่วนการสัมผัสปัจจัยเสี่ยงในกลุ่มผู้ป่วย: p1 = (OR×p0)/(1−p0+OR×p0) = '+fmt(p1*100,2)+'%</div>'+
-          '<div class="f-line f-sub">p̄ = (p1+p0)/2 = '+fmt(pbar,4)+'</div>'+
+          '<div class="f-line f-sub">คำนวณสัดส่วนการสัมผัสปัจจัยเสี่ยงในกลุ่มผู้ป่วยก่อน: p1 = (OR×p0)/(1−p0+OR×p0) = ('+fmt(or,2)+'×'+fmt(p0,3)+')/(1−'+fmt(p0,3)+'+'+fmt(or,2)+'×'+fmt(p0,3)+') = '+fmt(p1,4)+'</div>'+
           '<div class="f-line"><span class="f-formula">n₀ = [Z·√(2p̄(1−p̄)) + Z<sub>β</sub>·√(p1(1−p1)+p0(1−p0))]² / (p1−p0)²</span></div>'+
-          '<div class="f-line f-sub">= '+fmt(n0,2)+' ราย/กลุ่ม</div>';
+          defBlock([
+            '<span class="f-sym">n₀</span> = ขนาดกลุ่มตัวอย่างต่อกลุ่ม',
+            '<span class="f-sym">Z</span> = ค่ามาตรฐานปกติ ณ ระดับความเชื่อมั่น '+fmt(common.confPct,0)+'% (Z = '+fmt(Za,3)+')',
+            '<span class="f-sym">Z<sub>β</sub></span> = ค่ามาตรฐานปกติ ณ อำนาจการทดสอบ '+fmt(common.powPct,0)+'% (Z<sub>β</sub> = '+fmt(Zb,3)+')',
+            '<span class="f-sym">p0</span> = สัดส่วนการสัมผัสปัจจัยเสี่ยงในกลุ่มควบคุม (p0 = '+fmt(p0,2)+')',
+            '<span class="f-sym">OR</span> = ค่า Odds Ratio ที่คาดหวัง (OR = '+fmt(or,2)+')',
+            '<span class="f-sym">p1</span> = สัดส่วนการสัมผัสปัจจัยเสี่ยงในกลุ่มผู้ป่วยที่คำนวณได้ (p1 = '+fmt(p1,4)+')',
+            '<span class="f-sym">p̄</span> = สัดส่วนเฉลี่ยของทั้งสองกลุ่ม (p̄ = (p1+p0)/2 = '+fmt(pbar,4)+')'
+          ])+
+          '<div class="f-line f-sub">แทนค่า: n₀ = ['+fmt(Za,3)+'×√(2×'+fmt(pbar,4)+'(1−'+fmt(pbar,4)+')) + '+fmt(Zb,3)+'×√('+fmt(p1,3)+'(1−'+fmt(p1,3)+')+'+fmt(p0,3)+'(1−'+fmt(p0,3)+'))]² / ('+fmt(p1,3)+'−'+fmt(p0,3)+')²</div>'+
+          '<div class="f-line f-sub">n₀ = '+fmt(n0,2)+' ต่อกลุ่ม</div>'+
+          concludeLine('ดังนั้น ขนาดกลุ่มตัวอย่างที่เหมาะสมสำหรับการวิจัยครั้งนี้ เท่ากับกลุ่มละ '+fmtInt(adj.nFinal)+' ราย รวมทั้งสิ้น '+fmtInt(ceilOrDash(adj.nFinal)*2)+' ราย');
         return {kind:'twoGroup', n0:n0, adj:adj, breakdown:breakdown, extraInfo:'สัดส่วนการสัมผัสปัจจัยเสี่ยงในกลุ่มผู้ป่วยที่คำนวณได้ (p1) = '+fmt(p1*100,1)+'%'};
       }
     },
@@ -550,10 +623,20 @@
         var n0 = (num*num)/((p1-p0)*(p1-p0));
         var adj=adjustPop(n0, common);
         var breakdown =
-          '<div class="f-line f-sub">อุบัติการณ์ในกลุ่มสัมผัสปัจจัยเสี่ยง: p1 = p0×RR = '+fmt(p1*100,2)+'%</div>'+
-          '<div class="f-line f-sub">p̄ = (p1+p0)/2 = '+fmt(pbar,4)+'</div>'+
+          '<div class="f-line f-sub">คำนวณอุบัติการณ์ในกลุ่มสัมผัสปัจจัยเสี่ยงก่อน: p1 = p0×RR = '+fmt(p0,3)+'×'+fmt(rr,2)+' = '+fmt(p1,4)+'</div>'+
           '<div class="f-line"><span class="f-formula">n₀ = [Z·√(2p̄(1−p̄)) + Z<sub>β</sub>·√(p1(1−p1)+p0(1−p0))]² / (p1−p0)²</span></div>'+
-          '<div class="f-line f-sub">= '+fmt(n0,2)+' ราย/กลุ่ม</div>';
+          defBlock([
+            '<span class="f-sym">n₀</span> = ขนาดกลุ่มตัวอย่างต่อกลุ่ม',
+            '<span class="f-sym">Z</span> = ค่ามาตรฐานปกติ ณ ระดับความเชื่อมั่น '+fmt(common.confPct,0)+'% (Z = '+fmt(Za,3)+')',
+            '<span class="f-sym">Z<sub>β</sub></span> = ค่ามาตรฐานปกติ ณ อำนาจการทดสอบ '+fmt(common.powPct,0)+'% (Z<sub>β</sub> = '+fmt(Zb,3)+')',
+            '<span class="f-sym">p0</span> = อุบัติการณ์ในกลุ่มไม่สัมผัสปัจจัยเสี่ยง (p0 = '+fmt(p0,2)+')',
+            '<span class="f-sym">RR</span> = ค่า Relative Risk ที่คาดหวัง (RR = '+fmt(rr,2)+')',
+            '<span class="f-sym">p1</span> = อุบัติการณ์ในกลุ่มสัมผัสปัจจัยเสี่ยงที่คำนวณได้ (p1 = '+fmt(p1,4)+')',
+            '<span class="f-sym">p̄</span> = อุบัติการณ์เฉลี่ยของทั้งสองกลุ่ม (p̄ = (p1+p0)/2 = '+fmt(pbar,4)+')'
+          ])+
+          '<div class="f-line f-sub">แทนค่า: n₀ = ['+fmt(Za,3)+'×√(2×'+fmt(pbar,4)+'(1−'+fmt(pbar,4)+')) + '+fmt(Zb,3)+'×√('+fmt(p1,3)+'(1−'+fmt(p1,3)+')+'+fmt(p0,3)+'(1−'+fmt(p0,3)+'))]² / ('+fmt(p1,3)+'−'+fmt(p0,3)+')²</div>'+
+          '<div class="f-line f-sub">n₀ = '+fmt(n0,2)+' ต่อกลุ่ม</div>'+
+          concludeLine('ดังนั้น ขนาดกลุ่มตัวอย่างที่เหมาะสมสำหรับการวิจัยครั้งนี้ เท่ากับกลุ่มละ '+fmtInt(adj.nFinal)+' ราย รวมทั้งสิ้น '+fmtInt(ceilOrDash(adj.nFinal)*2)+' ราย');
         return {kind:'twoGroup', n0:n0, adj:adj, breakdown:breakdown, extraInfo:'อุบัติการณ์ในกลุ่มสัมผัสปัจจัยเสี่ยงที่คำนวณได้ (p1) = '+fmt(p1*100,1)+'%'};
       }
     },
@@ -575,10 +658,18 @@
         var n0 = Math.pow((Za+Zb)/C,2) + 3;
         var adj=adjustPop(n0, common);
         var breakdown =
-          '<div class="f-line f-sub">C = ½·ln[(1+r)/(1−r)] = '+fmt(C,4)+'</div>'+
+          '<div class="f-line f-sub">แปลงค่า r ด้วย Fisher\'s Z ก่อน: C = ½·ln[(1+r)/(1−r)] = ½·ln[(1+'+fmt(r,2)+')/(1−'+fmt(r,2)+')] = '+fmt(C,4)+'</div>'+
           '<div class="f-line"><span class="f-formula">n₀ = [(Z + Z<sub>β</sub>) / C]² + 3</span></div>'+
-          '<div class="f-line f-sub">= [('+fmt(Za,3)+' + '+fmt(Zb,3)+') / '+fmt(C,4)+']² + 3</div>'+
-          '<div class="f-line f-sub">= '+fmt(n0,2)+' ราย</div>';
+          defBlock([
+            '<span class="f-sym">n₀</span> = ขนาดกลุ่มตัวอย่าง',
+            '<span class="f-sym">Z</span> = ค่ามาตรฐานปกติ ณ ระดับความเชื่อมั่น '+fmt(common.confPct,0)+'% (Z = '+fmt(Za,3)+')',
+            '<span class="f-sym">Z<sub>β</sub></span> = ค่ามาตรฐานปกติ ณ อำนาจการทดสอบ '+fmt(common.powPct,0)+'% (Z<sub>β</sub> = '+fmt(Zb,3)+')',
+            '<span class="f-sym">r</span> = สัมประสิทธิ์สหสัมพันธ์ที่คาดว่าจะพบ (r = '+fmt(r,2)+')',
+            '<span class="f-sym">C</span> = ค่าที่แปลงจาก r ด้วยวิธี Fisher\'s Z (C = '+fmt(C,4)+')'
+          ])+
+          '<div class="f-line f-sub">แทนค่า: n₀ = [('+fmt(Za,3)+' + '+fmt(Zb,3)+') / '+fmt(C,4)+']² + 3</div>'+
+          '<div class="f-line f-sub">n₀ = '+fmt(n0,2)+'</div>'+
+          concludeLine('ดังนั้น ขนาดกลุ่มตัวอย่างที่เหมาะสมสำหรับการวิจัยครั้งนี้ เท่ากับ '+fmtInt(adj.nFinal)+' ราย');
         return {kind:'single', n0:n0, adj:adj, breakdown:breakdown};
       }
     },
@@ -606,12 +697,20 @@
         var binding = NtotSn>=NtotSp ? 'ความไว (Sensitivity)' : 'ความจำเพาะ (Specificity)';
         var adj=adjustPop(Ntotal0, common);
         var breakdown =
-          '<div class="f-line f-sub">จำนวนกลุ่มโรคขั้นต่ำ: n<sub>Sn</sub> = Z²·Sn(1−Sn)/d² = '+fmt(nDis,2)+' ราย</div>'+
-          '<div class="f-line f-sub">จำนวนกลุ่มไม่เป็นโรคขั้นต่ำ: n<sub>Sp</sub> = Z²·Sp(1−Sp)/d² = '+fmt(nNon,2)+' ราย</div>'+
+          '<div class="f-line"><span class="f-formula">n<sub>Sn</sub> = Z²·Sn(1−Sn)/d²   ,   n<sub>Sp</sub> = Z²·Sp(1−Sp)/d²</span></div>'+
+          defBlock([
+            '<span class="f-sym">Z</span> = ค่ามาตรฐานปกติ ณ ระดับความเชื่อมั่น '+fmt(common.confPct,0)+'% (Z = '+fmt(Za,3)+')',
+            '<span class="f-sym">Sn</span> = ความไวที่คาดหวัง (Sn = '+fmt(sn,2)+')',
+            '<span class="f-sym">Sp</span> = ความจำเพาะที่คาดหวัง (Sp = '+fmt(sp,2)+')',
+            '<span class="f-sym">d</span> = ค่าความคลาดเคลื่อนที่ยอมรับได้ (d = '+fmt(d,2)+')',
+            '<span class="f-sym">ความชุก</span> = ความชุกของโรคในประชากรที่ศึกษา (= '+fmt(prev,2)+')'
+          ])+
+          '<div class="f-line f-sub">แทนค่า: n<sub>Sn</sub> = ('+fmt(Za,3)+')²×'+fmt(sn,3)+'(1−'+fmt(sn,3)+')/('+fmt(d,3)+')² = '+fmt(nDis,2)+' ราย (จำนวนกลุ่มเป็นโรคขั้นต่ำ)</div>'+
+          '<div class="f-line f-sub">n<sub>Sp</sub> = ('+fmt(Za,3)+')²×'+fmt(sp,3)+'(1−'+fmt(sp,3)+')/('+fmt(d,3)+')² = '+fmt(nNon,2)+' ราย (จำนวนกลุ่มไม่เป็นโรคขั้นต่ำ)</div>'+
           '<div class="f-line f-sub">ขนาดตัวอย่างรวมตามความไว = n<sub>Sn</sub> / ความชุก = '+fmt(NtotSn,2)+'</div>'+
           '<div class="f-line f-sub">ขนาดตัวอย่างรวมตามความจำเพาะ = n<sub>Sp</sub> / (1−ความชุก) = '+fmt(NtotSp,2)+'</div>'+
-          '<div class="f-line"><span class="f-formula">N = max(ขนาดตัวอย่างทั้งสองเงื่อนไข)</span></div>'+
-          '<div class="f-line f-sub">เงื่อนไขที่กำหนดขนาดตัวอย่าง: '+binding+'</div>';
+          '<div class="f-line f-sub">N = max(ขนาดตัวอย่างทั้งสองเงื่อนไข) — เงื่อนไขที่กำหนดขนาดตัวอย่างคือ '+binding+'</div>'+
+          concludeLine('ดังนั้น ขนาดกลุ่มตัวอย่างที่ต้องเก็บรวบรวมทั้งสิ้นสำหรับการวิจัยครั้งนี้ เท่ากับ '+fmtInt(adj.nFinal)+' ราย (แบ่งเป็นกลุ่มเป็นโรคอย่างน้อย '+fmtInt(nDis)+' ราย และกลุ่มไม่เป็นโรคอย่างน้อย '+fmtInt(nNon)+' ราย)');
         return {kind:'diagnostic', n0:Ntotal0, nDis:nDis, nNon:nNon, adj:adj, breakdown:breakdown};
       }
     },
@@ -633,9 +732,15 @@
         var nRecommend = Math.max(nOverall, nIndividual);
         var adj = adjustPop(nRecommend, common);
         var breakdown =
-          '<div class="f-line f-sub">ทดสอบ R² โดยรวม: n = 50 + 8k = 50 + 8×'+fmtInt(k)+' = '+fmtInt(nOverall)+' ราย</div>'+
-          '<div class="f-line f-sub">ทดสอบสัมประสิทธิ์แต่ละตัวแปร: n = 104 + k = 104 + '+fmtInt(k)+' = '+fmtInt(nIndividual)+' ราย</div>'+
-          '<div class="f-line"><span class="f-formula">ใช้ขนาดตัวอย่างที่มากกว่าเพื่อความครอบคลุมทั้งสองวัตถุประสงค์</span></div>';
+          '<div class="f-line"><span class="f-formula">n = 50 + 8k   (ทดสอบ R² โดยรวม)   ,   n = 104 + k   (ทดสอบสัมประสิทธิ์รายตัวแปร)</span></div>'+
+          defBlock([
+            '<span class="f-sym">n</span> = ขนาดกลุ่มตัวอย่างขั้นต่ำที่แนะนำ',
+            '<span class="f-sym">k</span> = จำนวนตัวแปรทำนาย (ตัวแปรอิสระ) ในสมการถดถอย (k = '+fmtInt(k)+')'
+          ])+
+          '<div class="f-line f-sub">แทนค่า: n (ทดสอบ R² โดยรวม) = 50 + 8×'+fmtInt(k)+' = '+fmtInt(nOverall)+' ราย</div>'+
+          '<div class="f-line f-sub">n (ทดสอบสัมประสิทธิ์รายตัวแปร) = 104 + '+fmtInt(k)+' = '+fmtInt(nIndividual)+' ราย</div>'+
+          '<div class="f-line f-sub">ใช้ค่าที่มากกว่าเพื่อความครอบคลุมทั้งสองวัตถุประสงค์</div>'+
+          concludeLine('ดังนั้น ขนาดกลุ่มตัวอย่างขั้นต่ำที่แนะนำสำหรับการวิเคราะห์การถดถอยครั้งนี้ เท่ากับ '+fmtInt(adj.nFinal)+' ราย (แนวทางโดยประมาณตาม Green, 1991)');
         return {kind:'regression', nOverall:nOverall, nIndividual:nIndividual, n0:nRecommend, adj:adj, breakdown:breakdown};
       }
     }
