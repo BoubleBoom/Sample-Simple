@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sample Simple — โปรแกรมคำนวณขนาดตัวอย่างเพื่อการวิจัย</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F6FBF7; --surface:#FFFFFF; --surface-2:#EEF6F0;
+    --border:#DCEAE1; --border-strong:#BFDBCB;
+    --forest:#0F2E20; --forest-2:#1B4332; --green:#2D6A4F; --green-bright:#3E8F68;
+    --sage:#74C69D; --sage-soft:#CDEBDB;
+    --text:#132419; --text-muted:#5B7565;
+    --danger:#A6392E; --danger-bg:#FBEAE8; --danger-border:#EBC6C1;
+    --font-display:'Noto Serif Thai','Noto Serif',Georgia,serif;
+    --font-body:'Sarabun','Noto Sans Thai',-apple-system,sans-serif;
+    --shadow-btn:0 1px 2px rgba(15,46,32,0.18);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0C1A13; --surface:#122A1D; --surface-2:#173523; --border:#254536; --border-strong:#2F5942;
+      --forest:#EAF5EE; --forest-2:#CFE9DA; --green:#8FD9AE; --green-bright:#7FCC9E; --sage:#9AE6BC;
+      --sage-soft:#1E4230; --text:#E9F4EC; --text-muted:#9BBBA9; --danger:#FF9A8D; --danger-bg:#3A1C1A; --danger-border:#5C2C27;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0C1A13; --surface:#122A1D; --surface-2:#173523; --border:#254536; --border-strong:#2F5942;
+    --forest:#EAF5EE; --forest-2:#CFE9DA; --green:#8FD9AE; --green-bright:#7FCC9E; --sage:#9AE6BC;
+    --sage-soft:#1E4230; --text:#E9F4EC; --text-muted:#9BBBA9; --danger:#FF9A8D; --danger-bg:#3A1C1A; --danger-border:#5C2C27;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-size:15.5px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  ::selection{background:var(--sage-soft);}
+  h1,h2,h3{font-family:var(--font-display);margin:0;color:var(--forest);}
+  a{color:var(--green);}
+  button{font-family:inherit;}
+  input,select{font-family:inherit;font-size:15px;color:var(--text);}
+
+  .app{max-width:1240px;margin:0 auto;padding:0 20px;}
+
+  .topbar{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:14px;padding:28px 4px 20px;border-bottom:1px solid var(--border);animation:fadeDown .6s ease both;}
+  @keyframes fadeDown{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}
+  @media (prefers-reduced-motion: reduce){ .topbar{animation:none;} }
+  .brand{display:flex;align-items:center;gap:14px;}
+  .brand-mark{flex:0 0 auto;width:46px;height:46px;}
+  .brand-text{display:flex;flex-direction:column;gap:2px;}
+  .brand-name{font-family:var(--font-display);font-weight:700;font-size:26px;color:var(--forest);letter-spacing:0.2px;}
+  .brand-tagline{font-size:13.5px;color:var(--text-muted);max-width:420px;}
+  .topbar-credit{font-size:12.5px;color:var(--text-muted);text-align:right;line-height:1.5;}
+  .topbar-credit strong{color:var(--green);font-weight:600;}
+
+  .layout{display:grid;grid-template-columns:250px 1fr;gap:26px;padding:26px 0 40px;align-items:start;}
+  @media (max-width:900px){ .layout{grid-template-columns:1fr;} }
+
+  .sidebar{position:sticky;top:16px;display:flex;flex-direction:column;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;}
+  @media (max-width:900px){ .sidebar{position:static;} }
+  @media (min-width:901px){ .sidebar{max-height:calc(100vh - 32px);overflow-y:auto;} }
+  .sidebar-search{padding:2px 2px 8px;}
+  .sidebar-search input{width:100%;padding:8px 10px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--text);font-size:13.5px;}
+  .sidebar-search input:focus{outline:none;border-color:var(--green-bright);box-shadow:0 0 0 3px rgba(116,198,157,0.28);}
+  .sidebar-group-label{font-size:11.5px;color:var(--text-muted);font-weight:600;padding:4px 8px 6px;letter-spacing:0.3px;}
+  .sidebar-group{display:flex;flex-direction:column;gap:3px;margin-bottom:10px;}
+  .sidebar-group:last-child{margin-bottom:0;}
+  .nav-btn{display:flex;flex-direction:column;align-items:flex-start;gap:1px;text-align:left;background:transparent;border:1px solid transparent;border-radius:10px;padding:9px 10px;cursor:pointer;transition:background .15s ease, border-color .15s ease;width:100%;}
+  .nav-btn:hover{background:var(--surface-2);}
+  .nav-btn .nb-th{font-size:14.5px;color:var(--text);font-weight:500;}
+  .nav-btn .nb-en{font-size:11.5px;color:var(--text-muted);}
+  .nav-btn.active{background:var(--forest-2);border-color:var(--forest-2);}
+  .nav-btn.active .nb-th{color:#fff;}
+  .nav-btn.active .nb-en{color:var(--sage-soft);}
+  .nav-btn:focus-visible{outline:2px solid var(--green-bright);outline-offset:2px;}
+
+  .content{display:flex;flex-direction:column;gap:22px;min-width:0;}
+
+  .design-header{background:linear-gradient(135deg, var(--forest-2), var(--green));border-radius:18px;padding:24px 26px;color:#fff;}
+  .design-header .dh-eyebrow{font-size:12px;color:var(--sage-soft);margin-bottom:6px;}
+  .design-header h2{color:#fff;font-size:22px;margin-bottom:4px;}
+  .design-header .dh-en{font-size:13px;color:var(--sage-soft);font-style:italic;margin-bottom:10px;}
+  .design-header p{margin:0;font-size:14px;color:#EAF6EF;max-width:70ch;line-height:1.65;}
+  .design-header .dh-citation{font-size:12px;color:var(--sage-soft);margin-top:12px;font-style:italic;opacity:0.9;}
+
+  .grid-main{display:grid;grid-template-columns:1.15fr 1fr;gap:20px;align-items:start;}
+  @media (max-width:820px){ .grid-main{grid-template-columns:1fr;} }
+
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:22px;min-width:0;}
+  .panel-title{font-size:16.5px;display:flex;align-items:baseline;gap:8px;margin-bottom:16px;}
+  .panel-title-en{font-family:var(--font-body);font-size:12px;color:var(--text-muted);font-weight:400;font-style:italic;}
+
+  .form-grid{display:flex;flex-direction:column;gap:16px;}
+  .field label{display:block;font-size:14px;font-weight:500;color:var(--text);margin-bottom:6px;}
+  .field-en{display:block;font-size:11.5px;font-weight:400;color:var(--text-muted);font-style:italic;margin-top:1px;}
+  .input-wrap{position:relative;display:flex;align-items:center;}
+  .input-wrap input, .field select, .field > input{width:100%;padding:9px 12px;border:1px solid var(--border-strong);border-radius:9px;background:var(--surface);color:var(--text);transition:border-color .15s ease, box-shadow .15s ease;}
+  .input-wrap input{padding-right:38px;}
+  .input-wrap input:focus, .field select:focus, .field > input:focus{outline:none;border-color:var(--green-bright);box-shadow:0 0 0 3px rgba(116,198,157,0.28);}
+  .input-suffix{position:absolute;right:12px;font-size:13px;color:var(--text-muted);pointer-events:none;}
+  .field-hint{font-size:12px;color:var(--text-muted);margin:6px 2px 0;line-height:1.5;}
+  .field.hidden{display:none;}
+  .field-divider{border:none;border-top:1px dashed var(--border-strong);margin:2px 0;}
+  .field-section-label{font-size:12px;font-weight:600;color:var(--green);letter-spacing:0.2px;margin:2px 0 -4px;}
+
+  .form-actions{display:flex;gap:10px;margin-top:4px;}
+  .btn-reset{background:transparent;border:1px solid var(--border-strong);color:var(--text-muted);padding:8px 14px;border-radius:9px;cursor:pointer;font-size:13px;transition:all .15s ease;}
+  .btn-reset:hover{border-color:var(--green);color:var(--green);}
+
+  .result-panel{background:var(--surface-2);}
+  .warning-box{background:var(--danger-bg);border:1px solid var(--danger-border);color:var(--danger);border-radius:12px;padding:14px 16px;font-size:14px;line-height:1.6;}
+  .result-hero{display:flex;flex-direction:column;gap:4px;margin-bottom:4px;}
+  .result-hero-label{font-size:13px;color:var(--text-muted);}
+  .result-hero-num{font-family:var(--font-display);font-weight:700;font-size:46px;color:var(--forest-2);font-variant-numeric:tabular-nums;line-height:1.1;}
+  .result-hero-num .unit{font-size:18px;font-weight:500;color:var(--text-muted);margin-left:6px;}
+
+  .result-split{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0;}
+  .result-chip{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;}
+  .result-chip .rc-label{font-size:12px;color:var(--text-muted);margin-bottom:2px;}
+  .result-chip .rc-val{font-family:var(--font-display);font-weight:700;font-size:22px;color:var(--forest-2);font-variant-numeric:tabular-nums;}
+
+  .result-note{font-size:13px;color:var(--text-muted);background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-top:10px;line-height:1.6;}
+  .result-note strong{color:var(--text);}
+
+  .breakdown{margin-top:14px;}
+  .breakdown summary{cursor:pointer;font-size:13.5px;color:var(--green);font-weight:500;padding:4px 0;list-style:none;}
+  .breakdown summary::-webkit-details-marker{display:none;}
+  .breakdown summary::before{content:'▸ ';}
+  .breakdown[open] summary::before{content:'▾ ';}
+  .breakdown-body{margin-top:10px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;overflow-x:auto;}
+  .f-line{font-size:14.5px;padding:3px 0;white-space:nowrap;}
+  .f-formula{font-family:var(--font-display);font-style:italic;color:var(--forest-2);}
+  .f-sub{color:var(--text-muted);font-size:13.5px;}
+
+  .result-actions{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;}
+  .btn-secondary{background:var(--surface);border:1px solid var(--border-strong);color:var(--green);padding:9px 16px;border-radius:9px;cursor:pointer;font-size:13.5px;font-weight:500;display:inline-flex;align-items:center;gap:6px;transition:all .15s ease;box-shadow:var(--shadow-btn);}
+  .btn-secondary:hover{background:var(--sage-soft);border-color:var(--green-bright);}
+  .btn-secondary:active{transform:translateY(1px);}
+
+  .note-panel details summary{cursor:pointer;font-family:var(--font-display);font-size:15px;color:var(--forest-2);font-weight:600;list-style:none;}
+  .note-panel summary::-webkit-details-marker{display:none;}
+  .note-panel .note-body{margin-top:12px;font-size:13.5px;color:var(--text-muted);line-height:1.75;}
+  .note-panel .note-body ul{padding-left:20px;margin:8px 0;}
+  .note-panel .note-body li{margin-bottom:4px;}
+  .ref-list{padding-left:20px;margin:8px 0;}
+  .ref-list li{margin-bottom:9px;font-size:13px;color:var(--text-muted);line-height:1.6;}
+
+  .app-footer{border-top:1px solid var(--border);padding:22px 4px 34px;text-align:center;}
+  .app-footer p{margin:4px 0;font-size:13px;color:var(--text-muted);}
+  .app-footer strong{color:var(--green);}
+  .footer-disclaimer{font-size:12px;max-width:60ch;margin:8px auto 0 !important;}
+
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);background:var(--forest-2);color:#fff;padding:10px 18px;border-radius:999px;font-size:13.5px;opacity:0;pointer-events:none;transition:opacity .25s ease, transform .25s ease;box-shadow:0 6px 18px rgba(0,0,0,0.2);z-index:50;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  @media print{
+    .sidebar, .topbar-credit, .result-actions, .note-panel, .form-actions{display:none !important;}
+    body{background:#fff;}
+    .layout{grid-template-columns:1fr;}
+    .panel, .design-header{border:1px solid #ccc;box-shadow:none;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+        <path d="M24 4C13 8 6 18 8 30c1.5 9 9 14 16 14 0-10-2-17-6-22-3-4-7-6-11-7 6-1 12 0 17 5 4 4 6 10 6 18 6-2 10-9 10-17C40 12 33 4 24 4Z" fill="var(--green)"/>
+        <path d="M24 8c2 8 2 20 0 34" stroke="var(--forest-2)" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>
+      <div class="brand-text">
+        <span class="brand-name">Sample Simple</span>
+        <span class="brand-tagline">โปรแกรมคำนวณขนาดตัวอย่างเพื่อการวิจัยด้านสาธารณสุขและวิทยาศาสตร์สุขภาพ</span>
+      </div>
+    </div>
+    <div class="topbar-credit">
+      พัฒนาโดย <strong>Assoc. Prof. Ratchadaporn Ungcharoen</strong><br>
+      Faculty of Public Health, Kasetsart University
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="sidebar" id="sidebar" aria-label="เลือกรูปแบบการศึกษา"></nav>
+
+    <main class="content">
+      <section class="design-header" id="designHeader"></section>
+
+      <div class="grid-main">
+        <section class="panel form-panel">
+          <h2 class="panel-title">ข้อมูลนำเข้า <span class="panel-title-en">Input parameters</span></h2>
+          <form id="formArea" class="form-grid" autocomplete="off" onsubmit="return false;"></form>
+        </section>
+
+        <section class="panel result-panel">
+          <h2 class="panel-title">ผลการคำนวณ <span class="panel-title-en">Result</span></h2>
+          <div id="resultArea"></div>
+          <div class="result-actions">
+            <button id="copyBtn" type="button" class="btn-secondary">📋 คัดลอกสรุปผล</button>
+            <button id="printBtn" type="button" class="btn-secondary">🖨️ พิมพ์ / บันทึก PDF</button>
+          </div>
+        </section>
+      </div>
+
+      <section class="panel note-panel">
+        <details open>
+          <summary>เกี่ยวกับสูตรและข้อมูลอ้างอิง</summary>
+          <div class="note-body">
+            <p>Sample Simple คำนวณขนาดตัวอย่างด้วยสูตรมาตรฐานที่ใช้สอนและใช้จริงในงานวิจัยด้านสาธารณสุขและการแพทย์ ได้แก่ สูตร Cochran, Krejcie &amp; Morgan, Taro Yamane สำหรับการประมาณค่า; สูตร Fleiss และการทดสอบค่าเฉลี่ยสำหรับการเปรียบเทียบระหว่างกลุ่ม; สูตร Schlesselman สำหรับ Case-Control; สูตรดัดแปลงจาก Fleiss สำหรับ Cohort; การแปลง Fisher's Z สำหรับสหสัมพันธ์; สูตร Buderer สำหรับความไว-ความจำเพาะ; และแนวทางของ Green สำหรับการถดถอยพหุคูณ</p>
+            <p>ค่า Z ที่ใช้ในการคำนวณคำนวณจากฟังก์ชันการแจกแจงปกติผกผัน (inverse normal CDF) จึงสามารถกำหนดระดับความเชื่อมั่นและอำนาจการทดสอบ (power) เป็นค่าใดก็ได้ ไม่จำกัดเฉพาะ 90/95/99% หรือ 80/90/95%</p>
+            <p><strong>เรื่อง Finite กับ Infinite population:</strong> "Infinite" หมายถึงกรณีไม่ทราบขนาดประชากรที่แน่นอน หรือประชากรมีขนาดใหญ่มากเมื่อเทียบกับขนาดตัวอย่าง จึงคำนวณด้วยสูตรพื้นฐาน n₀ = Z²p(1−p)/d² ได้เลย ส่วน "Finite" คือกรณีที่ทราบขนาดประชากรทั้งหมด (N) จึงปรับลดขนาดตัวอย่างด้วยสูตรแก้ไขประชากรจำกัด (Finite Population Correction): n = n₀ / [1 + (n₀−1)/N] ในแอปนี้ ทุกแบบที่ให้เลือกประชากรได้จะมีตัวเลือก Infinite/Finite ส่วน Krejcie &amp; Morgan และ Yamane ได้รวมสูตรนี้ไว้ในตัวสูตรอยู่แล้ว (ใช้ N โดยตรง)</p>
+            <p><strong>Design Effect (DEFF):</strong> หากงานวิจัยใช้การสุ่มตัวอย่างแบบกลุ่ม/หลายขั้นตอน (Cluster / Multi-stage sampling) เช่น การสำรวจระดับประเทศที่สุ่มจังหวัด อำเภอ หมู่บ้านตามลำดับ ควรคูณขนาดตัวอย่างที่คำนวณได้ด้วยค่า Design Effect (นิยมใช้ 1.5–2.0 ในงานสำรวจสาธารณสุข) ซึ่งปรับได้ในทุกแบบการคำนวณของแอปนี้</p>
+          </div>
+        </details>
+        <details style="margin-top:14px;">
+          <summary>บรรณานุกรม / เอกสารอ้างอิง (References)</summary>
+          <div class="note-body">
+            <ol class="ref-list">
+              <li>Buderer, N. M. F. (1996). Statistical methodology: I. Incorporating the prevalence of disease into the sample size calculation for sensitivity and specificity. <em>Academic Emergency Medicine, 3</em>(9), 895–900.</li>
+              <li>Cochran, W. G. (1977). <em>Sampling Techniques</em> (3rd ed.). John Wiley &amp; Sons.</li>
+              <li>Cohen, J. (1988). <em>Statistical Power Analysis for the Behavioral Sciences</em> (2nd ed.). Lawrence Erlbaum Associates.</li>
+              <li>Daniel, W. W., &amp; Cross, C. L. (2013). <em>Biostatistics: A Foundation for Analysis in the Health Sciences</em> (10th ed.). Wiley.</li>
+              <li>Fleiss, J. L., Levin, B., &amp; Paik, M. C. (2003). <em>Statistical Methods for Rates and Proportions</em> (3rd ed.). John Wiley &amp; Sons.</li>
+              <li>Green, S. B. (1991). How many subjects does it take to do a regression analysis? <em>Multivariate Behavioral Research, 26</em>(3), 499–510.</li>
+              <li>Kish, L. (1965). <em>Survey Sampling</em>. John Wiley &amp; Sons.</li>
+              <li>Krejcie, R. V., &amp; Morgan, D. W. (1970). Determining sample size for research activities. <em>Educational and Psychological Measurement, 30</em>(3), 607–610.</li>
+              <li>Schlesselman, J. J. (1982). <em>Case-Control Studies: Design, Conduct, Analysis</em>. Oxford University Press.</li>
+              <li>Yamane, T. (1967). <em>Statistics: An Introductory Analysis</em> (2nd ed.). Harper and Row.</li>
+            </ol>
+          </div>
+        </details>
+      </section>
+    </main>
+  </div>
+
+  <footer class="app-footer">
+    <p>Sample Simple ออกแบบและพัฒนาโดย <strong>Assoc. Prof. Ratchadaporn Ungcharoen</strong></p>
+    <p>Faculty of Public Health, Kasetsart University</p>
+    <p class="footer-disclaimer">โปรแกรมนี้จัดทำขึ้นเพื่อการศึกษาและสนับสนุนการวางแผนงานวิจัย ผลลัพธ์ที่ได้ควรได้รับการตรวจสอบร่วมกับที่ปรึกษางานวิจัยหรือนักสถิติก่อนนำไปใช้จริง</p>
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ===================== MATH HELPERS ===================== */
+  function normSinv(p){
+    var a=[-3.969683028665376e+01,2.209460984245205e+02,-2.759285104469687e+02,1.383577518672690e+02,-3.066479806614716e+01,2.506628277459239e+00];
+    var b=[-5.447609879822406e+01,1.615858368580409e+02,-1.556989798598866e+02,6.680131188771972e+01,-1.328068155288572e+01];
+    var c=[-7.784894002430293e-03,-3.223964580411365e-01,-2.400758277161838e+00,-2.549732539343734e+00,4.374664141464968e+00,2.938163982698783e+00];
+    var d=[7.784695709041462e-03,3.224671290700398e-01,2.445134137142996e+00,3.754408661907416e+00];
+    var plow=0.02425, phigh=1-plow, q, r;
+    if(p<=0) return -Infinity;
+    if(p>=1) return Infinity;
+    if(p<plow){
+      q=Math.sqrt(-2*Math.log(p));
+      return (((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) / ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
+    } else if(p<=phigh){
+      q=p-0.5; r=q*q;
+      return (((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q / (((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1);
+    } else {
+      q=Math.sqrt(-2*Math.log(1-p));
+      return -(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) / ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
+    }
+  }
+  function zTwo(confPct){ var alpha=1-confPct/100; return normSinv(1-alpha/2); }
+  function zPow(powPct){ return normSinv(powPct/100); }
+  function fmt(x,dec){
+    dec = dec===undefined?2:dec;
+    if(x===null||x===undefined||!isFinite(x)||isNaN(x)) return '—';
+    return x.toLocaleString('en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec});
+  }
+  function fmtInt(x){
+    if(x===null||x===undefined||!isFinite(x)||isNaN(x)) return '—';
+    return Math.ceil(x).toLocaleString('en-US');
+  }
+  function ceilOrDash(x){
+    if(x===null||x===undefined||!isFinite(x)||isNaN(x)) return null;
+    return Math.ceil(x);
+  }
+
+  function adjustPop(n0, common){
+    var n=n0, fpcApplied=false;
+    if(common.popType==='finite' && common.N>0 && common.N>n0){
+      n = n0/(1+((n0-1)/common.N));
+      fpcApplied=true;
+    }
+    var afterNR=n, nrApplied=false;
+    if(common.nonresp && common.nonresp>0 && common.nonresp<100){
+      afterNR = n/(1-common.nonresp/100);
+      nrApplied=true;
+    }
+    var final=afterNR, deffApplied=false;
+    if(common.deff && common.deff>1.0001){
+      final = afterNR*common.deff;
+      deffApplied=true;
+    }
+    return {n0:n0, nFPC:n, nAfterNR:afterNR, nFinal:final, fpcApplied:fpcApplied, nrApplied:nrApplied, deffApplied:deffApplied, deffVal:common.deff};
+  }
+
+  /* ===================== STUDY DESIGN CONFIG ===================== */
+  var GROUP_LABELS = {
+    estimation:{th:'การประมาณค่าพารามิเตอร์', en:'Estimation'},
+    comparison:{th:'การเปรียบเทียบระหว่างกลุ่ม', en:'Comparison'},
+    epi:{th:'การศึกษาทางระบาดวิทยา', en:'Epidemiological studies'},
+    other:{th:'การวิเคราะห์อื่น ๆ', en:'Other analyses'}
+  };
+  var GROUP_ORDER = ['estimation','comparison','epi','other'];
+
+  var DESIGNS = [
+    {
+      id:'prop1', group:'estimation',
+      title:'ประมาณค่าสัดส่วนประชากร', titleEn:'Single Population Proportion',
+      formulaName:'สูตร Cochran', citation:'Cochran, W. G. (1977)',
+      desc:'ใช้เมื่อต้องการประมาณค่าสัดส่วน (ร้อยละ) ของลักษณะหนึ่งในประชากร เช่น ความชุกของโรค อัตราการฉีดวัคซีน หรือสัดส่วนพฤติกรรมสุขภาพ จากกลุ่มตัวอย่างเดียว',
+      needsPower:false, kind:'single',
+      fields:[
+        {id:'p', label:'สัดส่วนที่คาดว่าจะพบ', sub:'Expected proportion (p)', type:'percent', def:50, min:0.1, max:99.9, step:0.1,
+          hint:'หากไม่มีข้อมูลก่อนหน้า ให้ใช้ 50% เพื่อความอนุรักษ์นิยม (จะได้ขนาดตัวอย่างสูงสุด)'},
+        {id:'d', label:'ความคลาดเคลื่อนที่ยอมรับได้', sub:'Margin of error (d)', type:'percent', def:5, min:0.1, max:50, step:0.1,
+          hint:'ความกว้างของช่วงความเชื่อมั่นที่ยอมรับได้ นิยมใช้ 3–5%'}
+      ],
+      compute:function(fv, common){
+        var pf=fv.p/100, df=fv.d/100;
+        if(!(pf>0&&pf<1)||!(df>0)) return {kind:'single', error:'กรุณากรอกค่า p ระหว่าง 0–100% (ไม่รวม 0 และ 100) และค่า d มากกว่า 0'};
+        var Za=zTwo(common.confPct);
+        var n0=Za*Za*pf*(1-pf)/(df*df);
+        var adj=adjustPop(n0, common);
+        var breakdown =
+          '<div class="f-line"><span class="f-formula">n₀ = Z² · p(1−p) / d²</span></div>'+
+          '<div class="f-line f-sub">= '+fmt(Za,3)+'² × '+fmt(pf,4)+' × '+fmt(1-pf,4)+' / '+fmt(df,4)+'²</div>'+
+          '<div class="f-line f-sub">= '+fmt(n0,2)+' ราย</div>';
+        return {kind:'single', n0:n0, adj:adj, breakdown:breakdown};
+      }
+    },
+    {
+      id:'krejcie', group:'estimation',
+      title:'ตาราง/สูตร Krejcie & Morgan', titleEn:'Krejcie & Morgan (1970) Table Formula',
+      formulaName:'สูตร Krejcie & Morgan (1970)', citation:'Krejcie, R. V., & Morgan, D. W. (1970)',
+      desc:'สูตรที่ Krejcie และ Morgan (1970) ใช้สร้างตารางกำหนดขนาดตัวอย่างสำเร็จรูป นิยมใช้อย่างแพร่หลายในงานวิจัยไทยเมื่อ "ทราบขนาดประชากรที่แน่นอน" (finite population) โดยค่าเริ่มต้น P=0.5, d=0.05, ความเชื่อมั่น 95% จะให้ผลลัพธ์ตรงกับตารางต้นฉบับทุกประการ — ทางคณิตศาสตร์แล้วสูตรนี้เทียบเท่ากับสูตร Cochran ที่ปรับด้วย Finite Population Correction',
+      needsPower:false, kind:'single', skipPopulationBlock:true,
+      fields:[
+        {id:'N', label:'ขนาดประชากรทั้งหมด', sub:'Population size (N)', type:'number', def:1000, min:2, max:100000000, step:1,
+          hint:'ขนาดประชากรที่ทราบแน่นอน เช่น จำนวนนักศึกษาทั้งหมดในมหาวิทยาลัย จำนวนพนักงานทั้งองค์กร'},
+        {id:'P', label:'สัดส่วนที่คาดว่าจะพบในประชากร', sub:'Population proportion (P)', type:'percent', def:50, min:0.1, max:99.9, step:0.1,
+          hint:'ตามตารางต้นฉบับใช้ P=0.5 (อนุรักษ์นิยมที่สุด ให้ขนาดตัวอย่างสูงสุด)'},
+        {id:'d', label:'ความคลาดเคลื่อนที่ยอมรับได้', sub:'Degree of accuracy (d)', type:'percent', def:5, min:0.1, max:50, step:0.1,
+          hint:'ตามตารางต้นฉบับใช้ d=0.05 (5%)'}
+      ],
+      compute:function(fv, common){
+        var N=fv.N, P=fv.P/100, d=fv.d/100;
+        if(!(N>1)) return {kind:'single', error:'กรุณากรอกขนาดประชากร (N) มากกว่า 1'};
+        if(!(P>0&&P<1)) return {kind:'single', error:'กรุณากรอกค่า P ระหว่าง 0–100% (ไม่รวม 0 และ 100)'};
+        if(!(d>0)) return {kind:'single', error:'กรุณากรอกค่า d มากกว่า 0'};
+        var Za=zTwo(common.confPct);
+        var X2=Za*Za;
+        var n0 = (X2*N*P*(1-P)) / (d*d*(N-1) + X2*P*(1-P));
+        var adj=adjustPop(n0, common);
+        var isClassic = (common.confPct===95 && Math.abs(P-0.5)<1e-6 && Math.abs(d-0.05)<1e-6);
+        var breakdown =
+          '<div class="f-line f-sub">X² (chi-square, 1 df) = Z² = '+fmt(X2,4)+'</div>'+
+          '<div class="f-line"><span class="f-formula">n = X²·N·P(1−P) / [d²(N−1) + X²·P(1−P)]</span></div>'+
+          '<div class="f-line f-sub">= ('+fmt(X2,3)+'×'+fmtInt(N)+'×'+fmt(P,3)+'×'+fmt(1-P,3)+') / ('+fmt(d,3)+'²×('+fmtInt(N)+'−1) + '+fmt(X2,3)+'×'+fmt(P,3)+'×'+fmt(1-P,3)+')</div>'+
+          '<div class="f-line f-sub">= '+fmt(n0,2)+' ราย</div>'+
+          (isClassic?'<div class="f-line f-sub" style="margin-top:6px;">✓ ค่าที่ใช้ตรงกับตารางต้นฉบับของ Krejcie &amp; Morgan (1970) (P=0.5, d=0.05, 95% CI)</div>':'');
+        return {kind:'single', n0:n0, adj:adj, breakdown:breakdown};
+      }
+    },
+    {
+      id:'yamane', group:'estimation',
+      title:'สูตร Taro Yamane', titleEn:'Taro Yamane (1967) Formula',
+      formulaName:'สูตร Yamane (1967)', citation:'Yamane, T. (1967)',
+      desc:'สูตรอย่างง่ายสำหรับกำหนดขนาดตัวอย่างจากประชากรที่ทราบขนาดแน่นอน นิยมใช้อย่างแพร่หลายในงานวิจัยไทยด้านสังคมศาสตร์และสาธารณสุข เป็นสูตรที่ประมาณค่าจาก Cochran โดยกำหนด P=0.5 และความเชื่อมั่น 95% ไว้ตายตัว ทำให้เหลือเพียงกรอกขนาดประชากร (N) และค่าความคลาดเคลื่อนที่ยอมรับได้ (e)',
+      needsPower:false, kind:'single', skipPopulationBlock:true, skipConfidenceBlock:true,
+      fields:[
+        {id:'N', label:'ขนาดประชากรทั้งหมด', sub:'Population size (N)', type:'number', def:1000, min:2, max:100000000, step:1,
+          hint:'ขนาดประชากรที่ทราบแน่นอน'},
+        {id:'e', label:'ค่าความคลาดเคลื่อนที่ยอมรับได้', sub:'Precision level (e)', type:'percent', def:5, min:0.1, max:50, step:0.1,
+          hint:'นิยมใช้ 5% (0.05) หรือ 10% (0.10) แล้วแต่ความแม่นยำที่ต้องการ'}
+      ],
+      compute:function(fv, common){
+        var N=fv.N, e=fv.e/100;
+        if(!(N>1)) return {kind:'single', error:'กรุณากรอกขนาดประชากร (N) มากกว่า 1'};
+        if(!(e>0)) return {kind:'single', error:'กรุณากรอกค่า e มากกว่า 0'};
+        var n0 = N/(1+N*e*e);
+        var adj = adjustPop(n0, common);
+        var breakdown =
+          '<div class="f-line"><span class="f-formula">n = N / (1 + N·e²)</span></div>'+
+          '<div class="f-line f-sub">= '+fmtInt(N)+' / (1 + '+fmtInt(N)+'×'+fmt(e,4)+'²)</div>'+
+          '<div class="f-line f-sub">= '+fmt(n0,2)+' ราย</div>'+
+          '<div class="f-line f-sub" style="margin-top:6px;">หมายเหตุ: สูตรนี้กำหนดความเชื่อมั่น 95% และ P=0.5 ไว้ในตัวสูตรแล้ว (ประมาณค่า Z²P(1−P)≈1)</div>';
+        return {kind:'single', n0:n0, adj:adj, breakdown:breakdown};
+      }
+    },
+    {
+      id:'mean1', group:'estimation',
+      title:'ประมาณค่าเฉลี่ยประชากร', titleEn:'Single Population Mean',
+      formulaName:'สูตร Cochran (สำหรับค่าเฉลี่ย)', citation:'Cochran, W. G. (1977)',
+      desc:'ใช้เมื่อต้องการประมาณค่าเฉลี่ยของตัวแปรเชิงปริมาณในประชากร เช่น ค่าเฉลี่ยความดันโลหิต น้ำหนักตัว หรือคะแนนความรู้ จากกลุ่มตัวอย่างเดียว',
+      needsPower:false, kind:'single',
+      fields:[
+        {id:'sd', label:'ส่วนเบี่ยงเบนมาตรฐานที่คาดไว้', sub:'Expected SD (σ)', type:'number', def:10, min:0.01, max:100000, step:0.01,
+          hint:'อ้างอิงจากงานวิจัยก่อนหน้าหรือการศึกษานำร่อง (pilot study) หน่วยเดียวกับตัวแปรที่วัด'},
+        {id:'d', label:'ความคลาดเคลื่อนที่ยอมรับได้', sub:'Margin of error (d)', type:'number', def:2, min:0.01, max:100000, step:0.01,
+          hint:'ความกว้างของช่วงความเชื่อมั่นที่ยอมรับได้ หน่วยเดียวกับตัวแปรที่วัด'}
+      ],
+      compute:function(fv, common){
+        var sd=fv.sd, d=fv.d;
+        if(!(sd>0)||!(d>0)) return {kind:'single', error:'กรุณากรอกค่า SD และค่า d ให้มากกว่า 0'};
+        var Za=zTwo(common.confPct);
+        var n0=Za*Za*sd*sd/(d*d);
+        var adj=adjustPop(n0, common);
+        var breakdown =
+          '<div class="f-line"><span class="f-formula">n₀ = Z² · σ² / d²</span></div>'+
+          '<div class="f-line f-sub">= '+fmt(Za,3)+'² × '+fmt(sd,2)+'² / '+fmt(d,2)+'²</div>'+
+          '<div class="f-line f-sub">= '+fmt(n0,2)+' ราย</div>';
+        return {kind:'single', n0:n0, adj:adj, breakdown:breakdown};
+      }
+    },
+    {
+      id:'twoprop', group:'comparison',
+      title:'เปรียบเทียบสัดส่วน 2 กลุ่ม', titleEn:'Two Independent Proportions',
+      formulaName:'สูตร Fleiss', citation:'Fleiss, Levin, & Paik (2003)',
+      desc:'ใช้เมื่อต้องการเปรียบเทียบสัดส่วนของผลลัพธ์ระหว่างสองกลุ่มอิสระ เช่น อัตราการหายจากโรคระหว่างกลุ่มทดลองกับกลุ่มควบคุมในการวิจัยเชิงทดลอง (RCT)',
+      needsPower:true, kind:'twoGroup',
+      fields:[
+        {id:'p1', label:'สัดส่วนที่คาดว่าจะพบในกลุ่มที่ 1', sub:'Proportion in group 1 (p1)', type:'percent', def:50, min:0.1, max:99.9, step:0.1},
+        {id:'p2', label:'สัดส่วนที่คาดว่าจะพบในกลุ่มที่ 2', sub:'Proportion in group 2 (p2)', type:'percent', def:70, min:0.1, max:99.9, step:0.1,
+          hint:'ควรอ้างอิงจากงานวิจัยก่อนหน้า หรือผลต่างที่มีนัยสำคัญทางคลินิก (clinically meaningful difference)'}
+      ],
+      compute:function(fv, common){
+        var p1=fv.p1/100, p2=fv.p2/100;
+        if(!(p1>0&&p1<1)||!(p2>0&&p2<1)) return {kind:'twoGroup', error:'กรุณากรอกค่า p1 และ p2 ระหว่าง 0–100% (ไม่รวม 0 และ 100)'};
+        if(Math.abs(p1-p2)<1e-9) return {kind:'twoGroup', error:'ค่า p1 และ p2 ต้องไม่เท่ากัน จึงจะสามารถคำนวณขนาดตัวอย่างเพื่อทดสอบความแตกต่างได้'};
+        var pbar=(p1+p2)/2;
+        var Za=zTwo(common.confPct), Zb=zPow(common.powPct);
+        var num = Za*Math.sqrt(2*pbar*(1-pbar)) + Zb*Math.sqrt(p1*(1-p1)+p2*(1-p2));
+        var n0 = (num*num)/((p1-p2)*(p1-p2));
+        var adj=adjustPop(n0, common);
+        var breakdown =
+          '<div class="f-line f-sub">p̄ = (p1+p2)/2 = '+fmt(pbar,4)+'</div>'+
+          '<div class="f-line"><span class="f-formula">n₀ = [Z·√(2p̄(1−p̄)) + Z<sub>β</sub>·√(p1(1−p1)+p2(1−p2))]² / (p1−p2)²</span></div>'+
+          '<div class="f-line f-sub">= '+fmt(n0,2)+' ราย/กลุ่ม</div>';
+        return {kind:'twoGroup', n0:n0, adj:adj, breakdown:breakdown};
+      }
+    },
+    {
+      id:'twomean', group:'comparison',
+      title:'เปรียบเทียบค่าเฉลี่ย 2 กลุ่ม', titleEn:'Two Independent Means',
+      formulaName:'สูตรเปรียบเทียบค่าเฉลี่ยสองกลุ่มอิสระ', citation:'Daniel & Cross (2013)',
+      desc:'ใช้เมื่อต้องการเปรียบเทียบค่าเฉลี่ยของตัวแปรเชิงปริมาณระหว่างสองกลุ่มอิสระ เช่น ค่าเฉลี่ยน้ำหนักตัวที่ลดลงระหว่างกลุ่มที่ได้รับโปรแกรมกับกลุ่มควบคุม',
+      needsPower:true, kind:'twoGroup',
+      fields:[
+        {id:'sd', label:'ส่วนเบี่ยงเบนมาตรฐานร่วม', sub:'Common/pooled SD (σ)', type:'number', def:10, min:0.01, max:100000, step:0.01,
+          hint:'ส่วนเบี่ยงเบนมาตรฐานที่ใช้ร่วมกันของทั้งสองกลุ่ม'},
+        {id:'delta', label:'ผลต่างของค่าเฉลี่ยที่ต้องการตรวจพบ', sub:'Mean difference (Δ)', type:'number', def:5, min:0.01, max:100000, step:0.01,
+          hint:'ผลต่างที่มีความหมายทางคลินิกหรือทางวิชาการ หน่วยเดียวกับตัวแปรที่วัด'}
+      ],
+      compute:function(fv, common){
+        var sd=fv.sd, delta=fv.delta;
+        if(!(sd>0)||!(delta>0)) return {kind:'twoGroup', error:'กรุณากรอกค่า SD และผลต่างของค่าเฉลี่ย (Δ) ให้มากกว่า 0'};
+        var Za=zTwo(common.confPct), Zb=zPow(common.powPct);
+        var n0 = 2*(Za+Zb)*(Za+Zb)*sd*sd/(delta*delta);
+        var adj=adjustPop(n0, common);
+        var breakdown =
+          '<div class="f-line"><span class="f-formula">n₀ = 2(Z + Z<sub>β</sub>)² · σ² / Δ²</span></div>'+
+          '<div class="f-line f-sub">= 2×('+fmt(Za,3)+' + '+fmt(Zb,3)+')² × '+fmt(sd,2)+'² / '+fmt(delta,2)+'²</div>'+
+          '<div class="f-line f-sub">= '+fmt(n0,2)+' ราย/กลุ่ม</div>';
+        return {kind:'twoGroup', n0:n0, adj:adj, breakdown:breakdown};
+      }
+    },
+    {
+      id:'onemean_test', group:'comparison',
+      title:'เปรียบเทียบค่าเฉลี่ยกับค่าอ้างอิง / ข้อมูลจับคู่', titleEn:'One-Sample / Paired-Sample Mean Test',
+      formulaName:'สูตรทดสอบค่าเฉลี่ยหนึ่งกลุ่ม', citation:'Daniel & Cross (2013)',
+      desc:'ใช้เมื่อต้องการทดสอบว่าค่าเฉลี่ยของกลุ่มตัวอย่างแตกต่างจากค่าอ้างอิง/ค่ามาตรฐานอย่างมีนัยสำคัญ (เช่น เปรียบเทียบค่าเฉลี่ยความรู้กับเกณฑ์มาตรฐาน) หรือใช้กับการศึกษาแบบวัดผลก่อน-หลัง (Pre-Post / Paired design) ในกลุ่มตัวอย่างเดียวกัน โดยพิจารณาจากผลต่างที่จับคู่กัน',
+      needsPower:true, kind:'single',
+      fields:[
+        {id:'sd', label:'ส่วนเบี่ยงเบนมาตรฐาน (ของค่าที่วัด หรือของผลต่างคู่)', sub:'SD of measure or paired difference (σd)', type:'number', def:5, min:0.01, max:100000, step:0.01,
+          hint:'กรณี Pre-Post ให้ใช้ SD ของผลต่างระหว่างก่อนและหลัง (paired difference)'},
+        {id:'delta', label:'ผลต่างที่ต้องการตรวจพบ', sub:'Difference to detect (δ)', type:'number', def:2, min:0.01, max:100000, step:0.01,
+          hint:'ผลต่างระหว่างค่าเฉลี่ยกลุ่มตัวอย่างกับค่าอ้างอิง หรือผลต่างก่อน-หลังที่มีความหมายทางคลินิก'}
+      ],
+      compute:function(fv, common){
+        var sd=fv.sd, delta=fv.delta;
+        if(!(sd>0)||!(delta>0)) return {kind:'single', error:'กรุณากรอกค่า SD และผลต่างที่ต้องการตรวจพบ (δ) ให้มากกว่า 0'};
+        var Za=zTwo(common.confPct), Zb=zPow(common.powPct);
+        var n0 = (Za+Zb)*(Za+Zb)*sd*sd/(delta*delta);
+        var adj=adjustPop(n0, common);
+        var breakdown =
+          '<div class="f-line"><span class="f-formula">n₀ = (Z + Z<sub>β</sub>)² · σ<sub>d</sub>² / δ²</span></div>'+
+          '<div class="f-line f-sub">= ('+fmt(Za,3)+' + '+fmt(Zb,3)+')² × '+fmt(sd,2)+'² / '+fmt(delta,2)+'²</div>'+
+          '<div class="f-line f-sub">= '+fmt(n0,2)+' ราย</div>';
+        return {kind:'single', n0:n0, adj:adj, breakdown:breakdown};
+      }
+    },
+    {
+      id:'casecontrol', group:'epi',
+      title:'Case-Control Study', titleEn:'Case-Control Study (Odds Ratio)',
+      formulaName:'สูตร Schlesselman', citation:'Schlesselman, J. J. (1982)',
+      desc:'ใช้ในการศึกษาแบบ Case-Control เพื่อเปรียบเทียบสัดส่วนการสัมผัสปัจจัยเสี่ยงระหว่างกลุ่มผู้ป่วย (cases) และกลุ่มควบคุม (controls) โดยอิงค่า Odds Ratio ที่คาดหวัง',
+      needsPower:true, kind:'twoGroup',
+      fields:[
+        {id:'p0', label:'สัดส่วนการสัมผัสปัจจัยเสี่ยงในกลุ่มควบคุม', sub:'Exposure prevalence in controls (p0)', type:'percent', def:20, min:0.1, max:99.9, step:0.1},
+        {id:'or', label:'Odds Ratio ที่คาดหวัง', sub:'Expected OR', type:'number', def:2, min:0.01, max:1000, step:0.01,
+          hint:'ค่า OR ที่ต้องการมีอำนาจตรวจพบ ต้องไม่เท่ากับ 1'}
+      ],
+      compute:function(fv, common){
+        var p0=fv.p0/100, or=fv.or;
+        if(!(p0>0&&p0<1)||!(or>0)) return {kind:'twoGroup', error:'กรุณากรอกค่า p0 ระหว่าง 0–100% และ OR มากกว่า 0'};
+        if(Math.abs(or-1)<1e-6) return {kind:'twoGroup', error:'ค่า OR ต้องไม่เท่ากับ 1 (OR=1 หมายถึงไม่มีความสัมพันธ์ จึงไม่สามารถคำนวณขนาดตัวอย่างได้)'};
+        var p1=(or*p0)/(1-p0+or*p0);
+        if(!(p1>0&&p1<1)) return {kind:'twoGroup', error:'ค่าที่คำนวณได้ไม่อยู่ในช่วงที่เหมาะสม กรุณาปรับค่า p0 หรือ OR'};
+        var pbar=(p1+p0)/2;
+        var Za=zTwo(common.confPct), Zb=zPow(common.powPct);
+        var num = Za*Math.sqrt(2*pbar*(1-pbar)) + Zb*Math.sqrt(p1*(1-p1)+p0*(1-p0));
+        var n0 = (num*num)/((p1-p0)*(p1-p0));
+        var adj=adjustPop(n0, common);
+        var breakdown =
+          '<div class="f-line f-sub">สัดส่วนการสัมผัสปัจจัยเสี่ยงในกลุ่มผู้ป่วย: p1 = (OR×p0)/(1−p0+OR×p0) = '+fmt(p1*100,2)+'%</div>'+
+          '<div class="f-line f-sub">p̄ = (p1+p0)/2 = '+fmt(pbar,4)+'</div>'+
+          '<div class="f-line"><span class="f-formula">n₀ = [Z·√(2p̄(1−p̄)) + Z<sub>β</sub>·√(p1(1−p1)+p0(1−p0))]² / (p1−p0)²</span></div>'+
+          '<div class="f-line f-sub">= '+fmt(n0,2)+' ราย/กลุ่ม</div>';
+        return {kind:'twoGroup', n0:n0, adj:adj, breakdown:breakdown, extraInfo:'สัดส่วนการสัมผัสปัจจัยเสี่ยงในกลุ่มผู้ป่วยที่คำนวณได้ (p1) = '+fmt(p1*100,1)+'%'};
+      }
+    },
+    {
+      id:'cohort', group:'epi',
+      title:'Cohort Study', titleEn:'Cohort Study (Relative Risk)',
+      formulaName:'สูตรดัดแปลงจาก Fleiss', citation:'Fleiss, Levin, & Paik (2003)',
+      desc:'ใช้ในการศึกษาแบบ Cohort เพื่อเปรียบเทียบอุบัติการณ์ของโรคหรือผลลัพธ์ระหว่างกลุ่มที่สัมผัสและไม่สัมผัสปัจจัยเสี่ยง โดยอิงค่า Relative Risk ที่คาดหวัง',
+      needsPower:true, kind:'twoGroup',
+      fields:[
+        {id:'p0', label:'อุบัติการณ์ในกลุ่มไม่สัมผัสปัจจัยเสี่ยง', sub:'Incidence in unexposed (p0)', type:'percent', def:10, min:0.1, max:99.9, step:0.1},
+        {id:'rr', label:'Relative Risk ที่คาดหวัง', sub:'Expected RR', type:'number', def:2, min:0.01, max:1000, step:0.01,
+          hint:'ค่า RR ที่ต้องการมีอำนาจตรวจพบ ต้องไม่เท่ากับ 1'}
+      ],
+      compute:function(fv, common){
+        var p0=fv.p0/100, rr=fv.rr;
+        if(!(p0>0&&p0<1)||!(rr>0)) return {kind:'twoGroup', error:'กรุณากรอกค่า p0 ระหว่าง 0–100% และ RR มากกว่า 0'};
+        if(Math.abs(rr-1)<1e-6) return {kind:'twoGroup', error:'ค่า RR ต้องไม่เท่ากับ 1 (RR=1 หมายถึงไม่มีความสัมพันธ์ จึงไม่สามารถคำนวณขนาดตัวอย่างได้)'};
+        var p1=p0*rr;
+        if(!(p1>0&&p1<1)) return {kind:'twoGroup', error:'ค่าอุบัติการณ์ในกลุ่มสัมผัสปัจจัยที่คำนวณได้เกินช่วง 0–100% กรุณาปรับค่า p0 หรือ RR ให้เหมาะสม'};
+        var pbar=(p1+p0)/2;
+        var Za=zTwo(common.confPct), Zb=zPow(common.powPct);
+        var num = Za*Math.sqrt(2*pbar*(1-pbar)) + Zb*Math.sqrt(p1*(1-p1)+p0*(1-p0));
+        var n0 = (num*num)/((p1-p0)*(p1-p0));
+        var adj=adjustPop(n0, common);
+        var breakdown =
+          '<div class="f-line f-sub">อุบัติการณ์ในกลุ่มสัมผัสปัจจัยเสี่ยง: p1 = p0×RR = '+fmt(p1*100,2)+'%</div>'+
+          '<div class="f-line f-sub">p̄ = (p1+p0)/2 = '+fmt(pbar,4)+'</div>'+
+          '<div class="f-line"><span class="f-formula">n₀ = [Z·√(2p̄(1−p̄)) + Z<sub>β</sub>·√(p1(1−p1)+p0(1−p0))]² / (p1−p0)²</span></div>'+
+          '<div class="f-line f-sub">= '+fmt(n0,2)+' ราย/กลุ่ม</div>';
+        return {kind:'twoGroup', n0:n0, adj:adj, breakdown:breakdown, extraInfo:'อุบัติการณ์ในกลุ่มสัมผัสปัจจัยเสี่ยงที่คำนวณได้ (p1) = '+fmt(p1*100,1)+'%'};
+      }
+    },
+    {
+      id:'corr', group:'other',
+      title:'สัมประสิทธิ์สหสัมพันธ์', titleEn:'Correlation Coefficient',
+      formulaName:"Fisher's Z Transformation", citation:'Cohen, J. (1988)',
+      desc:'ใช้เมื่อต้องการทดสอบสมมติฐานว่าสัมประสิทธิ์สหสัมพันธ์ (r) ระหว่างตัวแปรสองตัวแตกต่างจากศูนย์อย่างมีนัยสำคัญ',
+      needsPower:true, kind:'single',
+      fields:[
+        {id:'r', label:'สัมประสิทธิ์สหสัมพันธ์ที่คาดหวัง', sub:'Expected correlation (r)', type:'number', def:0.3, min:0.01, max:0.99, step:0.01,
+          hint:'ค่าสัมบูรณ์ของ r ที่คาดว่าจะพบ ระหว่าง 0 ถึง 1 (ไม่รวม 0 และ 1)'}
+      ],
+      compute:function(fv, common){
+        var r=Math.abs(fv.r);
+        if(!(r>0&&r<1)) return {kind:'single', error:'กรุณากรอกค่า r ระหว่าง 0 ถึง 1 (ไม่รวม 0 และ 1)'};
+        var C=0.5*Math.log((1+r)/(1-r));
+        var Za=zTwo(common.confPct), Zb=zPow(common.powPct);
+        var n0 = Math.pow((Za+Zb)/C,2) + 3;
+        var adj=adjustPop(n0, common);
+        var breakdown =
+          '<div class="f-line f-sub">C = ½·ln[(1+r)/(1−r)] = '+fmt(C,4)+'</div>'+
+          '<div class="f-line"><span class="f-formula">n₀ = [(Z + Z<sub>β</sub>) / C]² + 3</span></div>'+
+          '<div class="f-line f-sub">= [('+fmt(Za,3)+' + '+fmt(Zb,3)+') / '+fmt(C,4)+']² + 3</div>'+
+          '<div class="f-line f-sub">= '+fmt(n0,2)+' ราย</div>';
+        return {kind:'single', n0:n0, adj:adj, breakdown:breakdown};
+      }
+    },
+    {
+      id:'diagnostic', group:'other',
+      title:'ความไว/ความจำเพาะของเครื่องมือวินิจฉัย', titleEn:'Diagnostic Test Accuracy',
+      formulaName:'สูตรของ Buderer', citation:'Buderer, N. M. F. (1996)',
+      desc:'ใช้เมื่อต้องการประเมินขนาดตัวอย่างสำหรับศึกษาความไว (Sensitivity) และความจำเพาะ (Specificity) ของเครื่องมือวินิจฉัย โดยคำนึงถึงความชุกของโรคในประชากรที่ศึกษา',
+      needsPower:false, kind:'diagnostic',
+      fields:[
+        {id:'sn', label:'ความไวที่คาดหวัง', sub:'Expected Sensitivity', type:'percent', def:90, min:1, max:99.9, step:0.1},
+        {id:'sp', label:'ความจำเพาะที่คาดหวัง', sub:'Expected Specificity', type:'percent', def:90, min:1, max:99.9, step:0.1},
+        {id:'prev', label:'ความชุกของโรคในประชากรที่ศึกษา', sub:'Disease prevalence', type:'percent', def:30, min:0.1, max:99.9, step:0.1},
+        {id:'d', label:'ความคลาดเคลื่อนที่ยอมรับได้', sub:'Margin of error (d)', type:'percent', def:5, min:0.1, max:50, step:0.1}
+      ],
+      compute:function(fv, common){
+        var sn=fv.sn/100, sp=fv.sp/100, prev=fv.prev/100, d=fv.d/100;
+        if(!(sn>0&&sn<1)||!(sp>0&&sp<1)||!(prev>0&&prev<1)||!(d>0)) return {kind:'diagnostic', error:'กรุณากรอกค่าความไว ความจำเพาะ ความชุก ระหว่าง 0–100% และค่า d มากกว่า 0'};
+        var Za=zTwo(common.confPct);
+        var nDis = Za*Za*sn*(1-sn)/(d*d);
+        var nNon = Za*Za*sp*(1-sp)/(d*d);
+        var NtotSn = nDis/prev;
+        var NtotSp = nNon/(1-prev);
+        var Ntotal0 = Math.max(NtotSn, NtotSp);
+        var binding = NtotSn>=NtotSp ? 'ความไว (Sensitivity)' : 'ความจำเพาะ (Specificity)';
+        var adj=adjustPop(Ntotal0, common);
+        var breakdown =
+          '<div class="f-line f-sub">จำนวนกลุ่มโรคขั้นต่ำ: n<sub>Sn</sub> = Z²·Sn(1−Sn)/d² = '+fmt(nDis,2)+' ราย</div>'+
+          '<div class="f-line f-sub">จำนวนกลุ่มไม่เป็นโรคขั้นต่ำ: n<sub>Sp</sub> = Z²·Sp(1−Sp)/d² = '+fmt(nNon,2)+' ราย</div>'+
+          '<div class="f-line f-sub">ขนาดตัวอย่างรวมตามความไว = n<sub>Sn</sub> / ความชุก = '+fmt(NtotSn,2)+'</div>'+
+          '<div class="f-line f-sub">ขนาดตัวอย่างรวมตามความจำเพาะ = n<sub>Sp</sub> / (1−ความชุก) = '+fmt(NtotSp,2)+'</div>'+
+          '<div class="f-line"><span class="f-formula">N = max(ขนาดตัวอย่างทั้งสองเงื่อนไข)</span></div>'+
+          '<div class="f-line f-sub">เงื่อนไขที่กำหนดขนาดตัวอย่าง: '+binding+'</div>';
+        return {kind:'diagnostic', n0:Ntotal0, nDis:nDis, nNon:nNon, adj:adj, breakdown:breakdown};
+      }
+    },
+    {
+      id:'regression', group:'other',
+      title:'ขนาดตัวอย่างสำหรับการวิเคราะห์ถดถอย', titleEn:'Multiple Regression — Rule of Thumb',
+      formulaName:'แนวทางของ Green (1991)', citation:'Green, S. B. (1991)',
+      desc:'แนวทางโดยประมาณ (ไม่ใช่การคำนวณอำนาจการทดสอบที่แม่นยำ) สำหรับประมาณขนาดตัวอย่างขั้นต่ำในการวิเคราะห์การถดถอยพหุคูณ (Multiple Regression) โดยพิจารณาจากจำนวนตัวแปรทำนาย (k) เหมาะสำหรับวางแผนเบื้องต้นเมื่อยังไม่มีค่า effect size ที่แน่ชัด หากต้องการความแม่นยำสูงควรใช้โปรแกรมเฉพาะทาง เช่น G*Power ร่วมด้วย',
+      needsPower:false, kind:'regression', skipPopulationBlock:true, skipConfidenceBlock:true,
+      fields:[
+        {id:'k', label:'จำนวนตัวแปรทำนาย (ตัวแปรอิสระ)', sub:'Number of predictors (k)', type:'number', def:5, min:1, max:100, step:1,
+          hint:'จำนวนตัวแปรอิสระทั้งหมดที่ใส่ในสมการถดถอย'}
+      ],
+      compute:function(fv, common){
+        var k=fv.k;
+        if(!(k>=1)) return {kind:'regression', error:'กรุณากรอกจำนวนตัวแปรทำนาย (k) อย่างน้อย 1 ตัว'};
+        var nOverall = 50 + 8*k;
+        var nIndividual = 104 + k;
+        var nRecommend = Math.max(nOverall, nIndividual);
+        var adj = adjustPop(nRecommend, common);
+        var breakdown =
+          '<div class="f-line f-sub">ทดสอบ R² โดยรวม: n = 50 + 8k = 50 + 8×'+fmtInt(k)+' = '+fmtInt(nOverall)+' ราย</div>'+
+          '<div class="f-line f-sub">ทดสอบสัมประสิทธิ์แต่ละตัวแปร: n = 104 + k = 104 + '+fmtInt(k)+' = '+fmtInt(nIndividual)+' ราย</div>'+
+          '<div class="f-line"><span class="f-formula">ใช้ขนาดตัวอย่างที่มากกว่าเพื่อความครอบคลุมทั้งสองวัตถุประสงค์</span></div>';
+        return {kind:'regression', nOverall:nOverall, nIndividual:nIndividual, n0:nRecommend, adj:adj, breakdown:breakdown};
+      }
+    }
+  ];
+
+  var designMap = {};
+  DESIGNS.forEach(function(d){ designMap[d.id]=d; });
+
+  /* ===================== SIDEBAR RENDER ===================== */
+  var sidebar = document.getElementById('sidebar');
+  var groupsHTML = '';
+  GROUP_ORDER.forEach(function(g){
+    var items = DESIGNS.filter(function(d){ return d.group===g; });
+    if(!items.length) return;
+    groupsHTML += '<div class="sidebar-group">';
+    groupsHTML += '<div class="sidebar-group-label">'+GROUP_LABELS[g].th+'</div>';
+    items.forEach(function(d){
+      groupsHTML += '<button type="button" class="nav-btn" data-id="'+d.id+'">'+
+        '<span class="nb-th">'+d.title+'</span><span class="nb-en">'+d.titleEn+'</span></button>';
+    });
+    groupsHTML += '</div>';
+  });
+  sidebar.innerHTML =
+    '<div class="sidebar-search"><input type="search" id="sidebarSearch" placeholder="🔍 ค้นหารูปแบบการศึกษา..." aria-label="ค้นหารูปแบบการศึกษา"></div>'+
+    '<div id="sidebarGroups">'+groupsHTML+'</div>';
+
+  document.getElementById('sidebarSearch').addEventListener('input', function(e){
+    var q = e.target.value.trim().toLowerCase();
+    var groups = document.querySelectorAll('#sidebarGroups .sidebar-group');
+    Array.prototype.forEach.call(groups, function(g){
+      var anyVisible=false;
+      var btns = g.querySelectorAll('.nav-btn');
+      Array.prototype.forEach.call(btns, function(b){
+        var txt=(b.textContent||'').toLowerCase();
+        var match = q==='' || txt.indexOf(q)>-1;
+        b.style.display = match?'':'none';
+        if(match) anyVisible=true;
+      });
+      g.style.display = anyVisible?'':'none';
+    });
+  });
+
+  var activeId = 'prop1';
+  try {
+    var saved = localStorage.getItem('samplesimple_last_design');
+    if(saved && designMap[saved]) activeId = saved;
+  } catch(e){}
+
+  sidebar.addEventListener('click', function(e){
+    var btn = e.target.closest('.nav-btn');
+    if(!btn) return;
+    setActiveDesign(btn.getAttribute('data-id'));
+  });
+
+  function setActiveDesign(id){
+    activeId = id;
+    Array.prototype.forEach.call(sidebar.querySelectorAll('.nav-btn'), function(b){
+      b.classList.toggle('active', b.getAttribute('data-id')===id);
+    });
+    try { localStorage.setItem('samplesimple_last_design', id); } catch(e){}
+    renderDesign(designMap[id]);
+  }
+
+  /* ===================== FORM RENDER ===================== */
+  var formArea = document.getElementById('formArea');
+  var designHeader = document.getElementById('designHeader');
+
+  function fieldHTML(f){
+    var suffix = f.type==='percent' ? '%' : (f.suffix||'');
+    return '<div class="field">'+
+      '<label for="f_'+f.id+'">'+f.label+'<span class="field-en">'+(f.sub||'')+'</span></label>'+
+      '<div class="input-wrap"><input type="number" id="f_'+f.id+'" value="'+f.def+'" min="'+f.min+'" max="'+f.max+'" step="'+f.step+'">'+
+      (suffix?'<span class="input-suffix">'+suffix+'</span>':'')+'</div>'+
+      (f.hint?'<p class="field-hint">'+f.hint+'</p>':'')+
+      '</div>';
+  }
+
+  function commonBlocksHTML(design){
+    var html = '';
+    if(!design.skipConfidenceBlock){
+      html += '<hr class="field-divider">';
+      html += '<div class="field-section-label">การตั้งค่าทางสถิติ</div>';
+      html += '<div class="field">'+
+        '<label for="conf_level">ระดับความเชื่อมั่น <span class="field-en">Confidence level</span></label>'+
+        '<select id="conf_level"><option value="90">90%</option><option value="95" selected>95%</option><option value="99">99%</option><option value="custom">กำหนดเอง...</option></select>'+
+        '</div>';
+      html += '<div class="field hidden" id="confCustomWrap">'+
+        '<label for="conf_custom">ระดับความเชื่อมั่น (กำหนดเอง)</label>'+
+        '<div class="input-wrap"><input type="number" id="conf_custom" value="97.5" min="50" max="99.99" step="0.1"><span class="input-suffix">%</span></div>'+
+        '</div>';
+      if(design.needsPower){
+        html += '<div class="field">'+
+          '<label for="power_level">อำนาจการทดสอบ <span class="field-en">Statistical power (1−β)</span></label>'+
+          '<select id="power_level"><option value="80" selected>80%</option><option value="90">90%</option><option value="95">95%</option><option value="custom">กำหนดเอง...</option></select>'+
+          '</div>';
+        html += '<div class="field hidden" id="powerCustomWrap">'+
+          '<label for="power_custom">อำนาจการทดสอบ (กำหนดเอง)</label>'+
+          '<div class="input-wrap"><input type="number" id="power_custom" value="85" min="50" max="99.9" step="0.1"><span class="input-suffix">%</span></div>'+
+          '</div>';
+      }
+    }
+    html += '<hr class="field-divider">';
+    var hasNField = design.fields.some(function(f){ return f.id==='N'; });
+    if(!design.skipPopulationBlock){
+      html += '<div class="field-section-label">ขนาดประชากร</div>';
+      html += '<div class="field">'+
+        '<label for="pop_type">ขนาดประชากร <span class="field-en">Population size</span></label>'+
+        '<select id="pop_type"><option value="infinite" selected>ไม่ทราบ / ประชากรขนาดใหญ่มาก (Infinite)</option><option value="finite">ทราบขนาดประชากรที่แน่นอน (Finite)</option></select>'+
+        '</div>';
+      html += '<div class="field hidden" id="popNWrap">'+
+        '<label for="pop_N">ขนาดประชากรทั้งหมด (N)</label>'+
+        '<input type="number" id="pop_N" value="1000" min="1" step="1">'+
+        '<p class="field-hint">โปรแกรมจะปรับขนาดตัวอย่างด้วยสูตรแก้ไขประชากรจำกัด (FPC): n = n₀ / (1 + (n₀−1)/N)</p>'+
+        '</div>';
+    } else if(hasNField){
+      html += '<div class="field-section-label">ขนาดประชากร</div>';
+      html += '<p class="field-hint" style="margin:-8px 2px 4px;">สูตรนี้ใช้ขนาดประชากร (N) ที่กรอกไว้ด้านบนโดยตรงในการคำนวณอยู่แล้ว จึงไม่ต้องเลือกประเภทประชากรซ้ำ</p>';
+    }
+    html += '<hr class="field-divider">';
+    html += '<div class="field-section-label">การปรับขนาดตัวอย่าง</div>';
+    html += '<div class="field">'+
+      '<label for="nonresp">อัตราการสูญหาย/ไม่ตอบแบบสอบถามที่คาดไว้ <span class="field-en">Expected non-response</span></label>'+
+      '<div class="input-wrap"><input type="number" id="nonresp" value="0" min="0" max="90" step="1"><span class="input-suffix">%</span></div>'+
+      '<p class="field-hint">ระบุหากคาดว่าจะมีผู้ปฏิเสธเข้าร่วมหรือข้อมูลไม่สมบูรณ์ โปรแกรมจะเพิ่มขนาดตัวอย่างชดเชยให้อัตโนมัติ</p>'+
+      '</div>';
+    html += '<div class="field">'+
+      '<label for="deff">Design Effect (DEFF) — สุ่มแบบกลุ่ม/หลายขั้นตอน <span class="field-en">Cluster / multi-stage sampling</span></label>'+
+      '<input type="number" id="deff" value="1" min="1" max="10" step="0.1">'+
+      '<p class="field-hint">ใช้เมื่อสุ่มตัวอย่างแบบ Cluster / Multi-stage sampling (เช่น สุ่มอำเภอแล้วสุ่มหมู่บ้าน) ค่าเริ่มต้น = 1 คือไม่มีผลจากการสุ่มแบบกลุ่ม งานสำรวจสาธารณสุขทั่วไปมักใช้ 1.5–2.0</p>'+
+      '</div>';
+    html += '<div class="form-actions"><button type="button" class="btn-reset" id="resetBtn">↺ ล้างค่า / ตั้งค่าเริ่มต้น</button></div>';
+    return html;
+  }
+
+  function updateConditionalVisibility(){
+    var confSel = document.getElementById('conf_level');
+    var confWrap = document.getElementById('confCustomWrap');
+    if(confSel && confWrap) confWrap.classList.toggle('hidden', confSel.value!=='custom');
+
+    var powSel = document.getElementById('power_level');
+    var powWrap = document.getElementById('powerCustomWrap');
+    if(powSel && powWrap) powWrap.classList.toggle('hidden', powSel.value!=='custom');
+
+    var popSel = document.getElementById('pop_type');
+    var popWrap = document.getElementById('popNWrap');
+    if(popSel && popWrap) popWrap.classList.toggle('hidden', popSel.value!=='finite');
+  }
+
+  function buildForm(design){
+    var html = design.fields.map(fieldHTML).join('') + commonBlocksHTML(design);
+    formArea.innerHTML = html;
+    updateConditionalVisibility();
+  }
+
+  formArea.addEventListener('input', function(e){
+    if(e.target.id==='conf_level' || e.target.id==='power_level' || e.target.id==='pop_type'){
+      updateConditionalVisibility();
+    }
+    calculate();
+  });
+  formArea.addEventListener('change', function(e){
+    if(e.target.id==='conf_level' || e.target.id==='power_level' || e.target.id==='pop_type'){
+      updateConditionalVisibility();
+    }
+    calculate();
+  });
+  formArea.addEventListener('click', function(e){
+    if(e.target.id==='resetBtn'){
+      buildForm(designMap[activeId]);
+      calculate();
+    }
+  });
+
+  /* ===================== HEADER RENDER ===================== */
+  function renderHeader(design){
+    designHeader.innerHTML =
+      '<div class="dh-eyebrow">'+GROUP_LABELS[design.group].th+' · '+design.formulaName+'</div>'+
+      '<h2>'+design.title+'</h2>'+
+      '<div class="dh-en">'+design.titleEn+'</div>'+
+      '<p>'+design.desc+'</p>'+
+      '<div class="dh-citation">อ้างอิง: '+design.citation+'</div>';
+  }
+
+  /* ===================== CALCULATE + RESULT RENDER ===================== */
+  var resultArea = document.getElementById('resultArea');
+  var lastResultCtx = null;
+
+  function getCommonVals(design){
+    var confSelEl = document.getElementById('conf_level');
+    var confPct;
+    if(confSelEl){
+      confPct = confSelEl.value==='custom' ? (parseFloat(document.getElementById('conf_custom').value)||95) : parseFloat(confSelEl.value);
+    } else {
+      confPct = 95;
+    }
+    var powPct = null;
+    if(design.needsPower){
+      var powSel = document.getElementById('power_level');
+      powPct = powSel && powSel.value==='custom' ? (parseFloat(document.getElementById('power_custom').value)||80) : (powSel?parseFloat(powSel.value):80);
+    }
+    var popTypeEl = document.getElementById('pop_type');
+    var popType = popTypeEl ? popTypeEl.value : 'infinite';
+    var popNEl = document.getElementById('pop_N');
+    var N = (popType==='finite' && popNEl) ? (parseFloat(popNEl.value)||0) : 0;
+    var nonresp = parseFloat(document.getElementById('nonresp').value)||0;
+    var deffEl = document.getElementById('deff');
+    var deff = deffEl ? (parseFloat(deffEl.value)||1) : 1;
+    return {confPct:confPct, powPct:powPct, popType:popType, N:N, nonresp:nonresp, deff:deff};
+  }
+
+  function getFieldVals(design){
+    var v={};
+    design.fields.forEach(function(f){
+      var raw = parseFloat(document.getElementById('f_'+f.id).value);
+      v[f.id] = isNaN(raw) ? f.def : raw;
+    });
+    return v;
+  }
+
+  function calculate(){
+    var design = designMap[activeId];
+    var common = getCommonVals(design);
+    var fv = getFieldVals(design);
+    var result;
+    try{
+      result = design.compute(fv, common);
+    }catch(err){
+      result = {kind:design.kind, error:'เกิดข้อผิดพลาดในการคำนวณ กรุณาตรวจสอบค่าที่กรอก'};
+    }
+    lastResultCtx = {design:design, result:result, common:common, fv:fv};
+    renderResult(design, result, common);
+  }
+
+  function adjNotesHTML(adj){
+    var notes = '';
+    if(adj.fpcApplied){
+      notes += '<div class="result-note"><strong>ปรับด้วย Finite Population Correction</strong> — จาก n₀ = '+fmtInt(adj.n0)+' เป็น n = '+fmtInt(adj.nFPC)+'</div>';
+    }
+    if(adj.nrApplied){
+      notes += '<div class="result-note"><strong>ปรับชดเชยข้อมูลสูญหาย</strong> — เพิ่มขนาดตัวอย่างเป็น '+fmtInt(adj.nAfterNR)+' ราย</div>';
+    }
+    if(adj.deffApplied){
+      notes += '<div class="result-note"><strong>ปรับด้วย Design Effect (×'+fmt(adj.deffVal,1)+')</strong> — ขนาดตัวอย่างสุดท้าย = '+fmtInt(adj.nFinal)+' ราย</div>';
+    }
+    return notes;
+  }
+
+  function renderResult(design, result, common){
+    if(result.error){
+      resultArea.innerHTML = '<div class="warning-box">⚠️ '+result.error+'</div>';
+      return;
+    }
+    var html = '';
+
+    if(result.kind==='single'){
+      html += '<div class="result-hero"><span class="result-hero-label">จำนวนตัวอย่างที่ต้องการทั้งหมด</span>'+
+        '<span class="result-hero-num">'+fmtInt(result.adj.nFinal)+'<span class="unit">ราย</span></span></div>';
+      html += adjNotesHTML(result.adj);
+    }
+    else if(result.kind==='twoGroup'){
+      var perGroup = ceilOrDash(result.adj.nFinal);
+      var totalN = perGroup!==null ? perGroup*2 : null;
+      html += '<div class="result-hero"><span class="result-hero-label">ขนาดตัวอย่างรวมทั้งสองกลุ่ม</span>'+
+        '<span class="result-hero-num">'+(totalN!==null?totalN.toLocaleString('en-US'):'—')+'<span class="unit">ราย</span></span></div>';
+      html += '<div class="result-split">'+
+        '<div class="result-chip"><div class="rc-label">ต่อกลุ่ม (Per group)</div><div class="rc-val">'+(perGroup!==null?perGroup.toLocaleString('en-US'):'—')+' ราย</div></div>'+
+        '<div class="result-chip"><div class="rc-label">จำนวนกลุ่ม</div><div class="rc-val">2 กลุ่ม</div></div>'+
+        '</div>';
+      if(result.extraInfo){
+        html += '<div class="result-note">'+result.extraInfo+'</div>';
+      }
+      html += adjNotesHTML(result.adj);
+    }
+    else if(result.kind==='diagnostic'){
+      html += '<div class="result-hero"><span class="result-hero-label">ขนาดตัวอย่างรวมที่ต้องเก็บ (ปรับตามความชุกของโรค)</span>'+
+        '<span class="result-hero-num">'+fmtInt(result.adj.nFinal)+'<span class="unit">ราย</span></span></div>';
+      html += '<div class="result-split">'+
+        '<div class="result-chip"><div class="rc-label">กลุ่มเป็นโรค (ขั้นต่ำ)</div><div class="rc-val">'+fmtInt(result.nDis)+' ราย</div></div>'+
+        '<div class="result-chip"><div class="rc-label">กลุ่มไม่เป็นโรค (ขั้นต่ำ)</div><div class="rc-val">'+fmtInt(result.nNon)+' ราย</div></div>'+
+        '</div>';
+      html += adjNotesHTML(result.adj);
+    }
+    else if(result.kind==='regression'){
+      html += '<div class="result-hero"><span class="result-hero-label">ขนาดตัวอย่างขั้นต่ำที่แนะนำ</span>'+
+        '<span class="result-hero-num">'+fmtInt(result.adj.nFinal)+'<span class="unit">ราย</span></span></div>';
+      html += '<div class="result-split">'+
+        '<div class="result-chip"><div class="rc-label">ทดสอบ R² โดยรวม</div><div class="rc-val">'+fmtInt(result.nOverall)+' ราย</div></div>'+
+        '<div class="result-chip"><div class="rc-label">ทดสอบตัวแปรแต่ละตัว</div><div class="rc-val">'+fmtInt(result.nIndividual)+' ราย</div></div>'+
+        '</div>';
+      html += '<div class="result-note"><strong>⚠️ แนวทางโดยประมาณ (rule of thumb)</strong> — ไม่ใช่การคำนวณอำนาจการทดสอบที่แม่นยำ หากต้องการความแม่นยำสูงควรระบุค่า Effect size และคำนวณด้วยโปรแกรมเฉพาะทาง เช่น G*Power</div>';
+      html += adjNotesHTML(result.adj);
+    }
+
+    html += '<details class="breakdown" open><summary>แสดงวิธีคำนวณ (สำหรับใช้อ้างอิงในบทที่ 3)</summary>'+
+      '<div class="breakdown-body">'+result.breakdown+'</div></details>';
+
+    resultArea.innerHTML = html;
+  }
+
+  /* ===================== COPY / PRINT ===================== */
+  function toast(msg){
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function(){ t.classList.remove('show'); }, 2200);
+  }
+
+  document.getElementById('copyBtn').addEventListener('click', function(){
+    if(!lastResultCtx || lastResultCtx.result.error){ toast('ยังไม่มีผลลัพธ์ที่สามารถคัดลอกได้'); return; }
+    var d = lastResultCtx.design, r = lastResultCtx.result;
+    var lines = [];
+    lines.push('Sample Simple — ผลการคำนวณขนาดตัวอย่าง');
+    lines.push('รูปแบบการศึกษา: '+d.title+' ('+d.titleEn+')');
+    lines.push('สูตรที่ใช้: '+d.formulaName+' — อ้างอิง: '+d.citation);
+    if(r.kind==='single'){
+      lines.push('ขนาดตัวอย่างที่ต้องการ: '+fmtInt(r.adj.nFinal)+' ราย');
+    } else if(r.kind==='twoGroup'){
+      var pg = ceilOrDash(r.adj.nFinal);
+      lines.push('ขนาดตัวอย่างต่อกลุ่ม: '+(pg!==null?pg:'—')+' ราย');
+      lines.push('ขนาดตัวอย่างรวม 2 กลุ่ม: '+(pg!==null?pg*2:'—')+' ราย');
+    } else if(r.kind==='diagnostic'){
+      lines.push('กลุ่มเป็นโรคขั้นต่ำ: '+fmtInt(r.nDis)+' ราย');
+      lines.push('กลุ่มไม่เป็นโรคขั้นต่ำ: '+fmtInt(r.nNon)+' ราย');
+      lines.push('ขนาดตัวอย่างรวม (ปรับตามความชุก): '+fmtInt(r.adj.nFinal)+' ราย');
+    } else if(r.kind==='regression'){
+      lines.push('ขนาดตัวอย่างขั้นต่ำที่แนะนำ (แนวทางโดยประมาณ): '+fmtInt(r.adj.nFinal)+' ราย');
+    }
+    lines.push('');
+    lines.push('คำนวณโดยโปรแกรม Sample Simple');
+    lines.push('พัฒนาโดย Assoc. Prof. Ratchadaporn Ungcharoen, Faculty of Public Health, Kasetsart University');
+    var text = lines.join('\n');
+    try{
+      navigator.clipboard.writeText(text).then(function(){ toast('คัดลอกสรุปผลแล้ว'); }, function(){ toast('ไม่สามารถคัดลอกอัตโนมัติได้ กรุณาคัดลอกด้วยตนเอง'); });
+    }catch(e){ toast('ไม่สามารถคัดลอกอัตโนมัติได้ กรุณาคัดลอกด้วยตนเอง'); }
+  });
+
+  document.getElementById('printBtn').addEventListener('click', function(){
+    window.print();
+  });
+
+  /* ===================== INIT ===================== */
+  function renderDesign(design){
+    renderHeader(design);
+    buildForm(design);
+    calculate();
+  }
+  setActiveDesign(activeId);
+
+})();
+</script>
+</body>
+</html>
