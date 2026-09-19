@@ -45,13 +45,18 @@
   .topbar{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:14px;padding:28px 4px 20px;border-bottom:1px solid var(--border);animation:fadeDown .6s ease both;}
   @keyframes fadeDown{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}
   @media (prefers-reduced-motion: reduce){ .topbar{animation:none;} }
-  .brand{display:flex;align-items:center;gap:14px;}
+  .brand{display:flex;align-items:center;gap:14px;flex:1 1 380px;min-width:280px;}
   .brand-mark{flex:0 0 auto;width:46px;height:46px;}
-  .brand-text{display:flex;flex-direction:column;gap:2px;}
+  .brand-text{display:flex;flex-direction:column;gap:2px;min-width:0;}
   .brand-name{font-family:var(--font-display);font-weight:700;font-size:26px;color:var(--forest);letter-spacing:0.2px;}
-  .brand-tagline{font-size:13.5px;color:var(--text-muted);max-width:420px;}
+  .brand-tagline{font-size:13px;color:var(--text-muted);max-width:600px;}
+  .topbar-right{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;}
   .topbar-credit{font-size:12.5px;color:var(--text-muted);text-align:right;line-height:1.5;}
   .topbar-credit strong{color:var(--green);font-weight:600;}
+  .lang-toggle{display:inline-flex;border:1px solid var(--border-strong);border-radius:999px;padding:3px;background:var(--surface);gap:2px;}
+  .lang-btn{border:none;background:transparent;padding:5px 13px;border-radius:999px;font-size:12.5px;font-weight:600;color:var(--text-muted);cursor:pointer;transition:all .15s ease;}
+  .lang-btn.active{background:var(--forest-2);color:#fff;}
+  .lang-btn:focus-visible{outline:2px solid var(--green-bright);outline-offset:1px;}
 
   .layout{display:grid;grid-template-columns:250px 1fr;gap:26px;padding:26px 0 40px;align-items:start;}
   @media (max-width:900px){ .layout{grid-template-columns:1fr;} }
@@ -159,7 +164,7 @@
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
   @media print{
-    .sidebar, .topbar-credit, .result-actions, .note-panel, .form-actions{display:none !important;}
+    .sidebar, .topbar-right, .result-actions, .note-panel, .form-actions{display:none !important;}
     body{background:#fff;}
     .layout{grid-template-columns:1fr;}
     .panel, .design-header{border:1px solid #ccc;box-shadow:none;}
@@ -177,12 +182,18 @@
       </svg>
       <div class="brand-text">
         <span class="brand-name">Sample Simple</span>
-        <span class="brand-tagline">โปรแกรมคำนวณขนาดตัวอย่างเพื่อการวิจัยด้านสาธารณสุขและวิทยาศาสตร์สุขภาพ</span>
+        <span class="brand-tagline" id="brandTagline">โปรแกรมคำนวณขนาดตัวอย่างเพื่อการวิจัยด้านสาธารณสุขและวิทยาศาสตร์สุขภาพ</span>
       </div>
     </div>
-    <div class="topbar-credit">
-      พัฒนาโดย <strong>Assoc. Prof. Ratchadaporn Ungcharoen</strong><br>
-      Faculty of Public Health, Kasetsart University, 2026
+    <div class="topbar-right">
+      <div class="lang-toggle" role="group" aria-label="Language">
+        <button type="button" class="lang-btn active" id="langBtnTh" data-lang="th">ไทย</button>
+        <button type="button" class="lang-btn" id="langBtnEn" data-lang="en">EN</button>
+      </div>
+      <div class="topbar-credit">
+        <span id="creditLine1">พัฒนาโดย <strong>Assoc. Prof. Ratchadaporn Ungcharoen</strong></span><br>
+        Faculty of Public Health, Kasetsart University, 2026
+      </div>
     </div>
   </header>
 
@@ -194,32 +205,27 @@
 
       <div class="grid-main">
         <section class="panel form-panel">
-          <h2 class="panel-title">ข้อมูลนำเข้า <span class="panel-title-en">Input parameters</span></h2>
+          <h2 class="panel-title"><span id="panelInputTitle">ข้อมูลนำเข้า</span> <span class="panel-title-en" id="panelInputTitleEn">Input parameters</span></h2>
           <form id="formArea" class="form-grid" autocomplete="off" onsubmit="return false;"></form>
         </section>
 
         <section class="panel result-panel">
-          <h2 class="panel-title">ผลการคำนวณ <span class="panel-title-en">Result</span></h2>
+          <h2 class="panel-title"><span id="panelResultTitle">ผลการคำนวณ</span> <span class="panel-title-en" id="panelResultTitleEn">Result</span></h2>
           <div id="resultArea"></div>
           <div class="result-actions">
-            <button id="copyBtn" type="button" class="btn-secondary">📋 คัดลอกสรุปผล</button>
-            <button id="printBtn" type="button" class="btn-secondary">🖨️ พิมพ์ / บันทึก PDF</button>
+            <button id="copyBtn" type="button" class="btn-secondary">📋 <span id="copyBtnLabel">คัดลอกสรุปผล</span></button>
+            <button id="printBtn" type="button" class="btn-secondary">🖨️ <span id="printBtnLabel">พิมพ์ / บันทึก PDF</span></button>
           </div>
         </section>
       </div>
 
       <section class="panel note-panel">
         <details open>
-          <summary>เกี่ยวกับสูตรและข้อมูลอ้างอิง</summary>
-          <div class="note-body">
-            <p>Sample Simple คำนวณขนาดตัวอย่างด้วยสูตรมาตรฐานที่ใช้สอนและใช้จริงในงานวิจัยด้านสาธารณสุขและการแพทย์ ได้แก่ สูตร Cochran, Krejcie &amp; Morgan, Taro Yamane สำหรับการประมาณค่า; สูตร Fleiss และการทดสอบค่าเฉลี่ยสำหรับการเปรียบเทียบระหว่างกลุ่ม; สูตร Schlesselman สำหรับ Case-Control; สูตรดัดแปลงจาก Fleiss สำหรับ Cohort; การแปลง Fisher's Z สำหรับสหสัมพันธ์; สูตร Buderer สำหรับความไว-ความจำเพาะ; และแนวทางของ Green สำหรับการถดถอยพหุคูณ</p>
-            <p>ค่า Z ที่ใช้ในการคำนวณคำนวณจากฟังก์ชันการแจกแจงปกติผกผัน (inverse normal CDF) จึงสามารถกำหนดระดับความเชื่อมั่นและอำนาจการทดสอบ (power) เป็นค่าใดก็ได้ ไม่จำกัดเฉพาะ 90/95/99% หรือ 80/90/95%</p>
-            <p><strong>เรื่อง Finite กับ Infinite population:</strong> "Infinite" หมายถึงกรณีไม่ทราบขนาดประชากรที่แน่นอน หรือประชากรมีขนาดใหญ่มากเมื่อเทียบกับขนาดตัวอย่าง จึงคำนวณด้วยสูตรพื้นฐาน n₀ = Z²p(1−p)/d² ได้เลย ส่วน "Finite" คือกรณีที่ทราบขนาดประชากรทั้งหมด (N) จึงปรับลดขนาดตัวอย่างด้วยสูตรแก้ไขประชากรจำกัด (Finite Population Correction): n = n₀ / [1 + (n₀−1)/N] ในแอปนี้ ทุกแบบที่ให้เลือกประชากรได้จะมีตัวเลือก Infinite/Finite ส่วน Krejcie &amp; Morgan และ Yamane ได้รวมสูตรนี้ไว้ในตัวสูตรอยู่แล้ว (ใช้ N โดยตรง)</p>
-            <p><strong>Design Effect (DEFF):</strong> หากงานวิจัยใช้การสุ่มตัวอย่างแบบกลุ่ม/หลายขั้นตอน (Cluster / Multi-stage sampling) เช่น การสำรวจระดับประเทศที่สุ่มจังหวัด อำเภอ หมู่บ้านตามลำดับ ควรคูณขนาดตัวอย่างที่คำนวณได้ด้วยค่า Design Effect (นิยมใช้ 1.5–2.0 ในงานสำรวจสาธารณสุข) ซึ่งปรับได้ในทุกแบบการคำนวณของแอปนี้</p>
-          </div>
+          <summary id="aboutTitle">เกี่ยวกับสูตรและข้อมูลอ้างอิง</summary>
+          <div class="note-body" id="aboutBody"></div>
         </details>
         <details style="margin-top:14px;">
-          <summary>บรรณานุกรม / เอกสารอ้างอิง (References)</summary>
+          <summary id="refTitle">บรรณานุกรม / เอกสารอ้างอิง (References)</summary>
           <div class="note-body">
             <ol class="ref-list">
               <li>Buderer, N. M. F. (1996). Statistical methodology: I. Incorporating the prevalence of disease into the sample size calculation for sensitivity and specificity. <em>Academic Emergency Medicine, 3</em>(9), 895–900.</li>
@@ -240,7 +246,7 @@
   </div>
 
   <footer class="app-footer">
-    <p>Sample Simple ออกแบบและพัฒนาโดย <strong>Assoc.Prof.Ratchadaporn Ungcharoen</strong></p>
+    <p id="footerLine1">Sample Simple ออกแบบและพัฒนาโดย <strong>Assoc. Prof. Ratchadaporn Ungcharoen</strong></p>
     <p>Faculty of Public Health, Kasetsart University, 2026</p>
   </footer>
 </div>
@@ -250,6 +256,42 @@
 <script>
 (function(){
   "use strict";
+
+  /* ===================== LANGUAGE ===================== */
+  var LANG = 'th';
+  function L(th, en){ return LANG === 'en' ? en : th; }
+
+  var UI = {
+    th:{
+      tagline:'โปรแกรมคำนวณขนาดตัวอย่างเพื่อการวิจัยด้านสาธารณสุขและวิทยาศาสตร์สุขภาพ',
+      searchPlaceholder:'🔍 ค้นหารูปแบบการศึกษา...',
+      panelInput:'ข้อมูลนำเข้า', panelInputEn:'Input parameters',
+      panelResult:'ผลการคำนวณ', panelResultEn:'Result',
+      copyBtn:'คัดลอกสรุปผล', printBtn:'พิมพ์ / บันทึก PDF',
+      creditLine1:'พัฒนาโดย <strong>Assoc. Prof. Ratchadaporn Ungcharoen</strong>',
+      footerLine1:'Sample Simple ออกแบบและพัฒนาโดย <strong>Assoc. Prof. Ratchadaporn Ungcharoen</strong>',
+      aboutTitle:'เกี่ยวกับสูตรและข้อมูลอ้างอิง', refTitle:'บรรณานุกรม / เอกสารอ้างอิง (References)',
+      aboutBody:'<p>Sample Simple คำนวณขนาดตัวอย่างด้วยสูตรมาตรฐานที่ใช้สอนและใช้จริงในงานวิจัยด้านสาธารณสุขและการแพทย์ ได้แก่ สูตร Cochran, Krejcie &amp; Morgan, Taro Yamane สำหรับการประมาณค่า; สูตร Fleiss และการทดสอบค่าเฉลี่ยสำหรับการเปรียบเทียบระหว่างกลุ่ม; สูตร Schlesselman สำหรับ Case-Control; สูตรดัดแปลงจาก Fleiss สำหรับ Cohort; การแปลง Fisher\'s Z สำหรับสหสัมพันธ์; สูตร Buderer สำหรับความไว-ความจำเพาะ; และแนวทางของ Green สำหรับการถดถอยพหุคูณ</p>'+
+        '<p>ค่า Z ที่ใช้ในการคำนวณคำนวณจากฟังก์ชันการแจกแจงปกติผกผัน (inverse normal CDF) จึงสามารถกำหนดระดับความเชื่อมั่นและอำนาจการทดสอบ (power) เป็นค่าใดก็ได้ ไม่จำกัดเฉพาะ 90/95/99% หรือ 80/90/95%</p>'+
+        '<p><strong>เรื่อง Finite กับ Infinite population:</strong> "Infinite" หมายถึงกรณีไม่ทราบขนาดประชากรที่แน่นอน หรือประชากรมีขนาดใหญ่มากเมื่อเทียบกับขนาดตัวอย่าง จึงคำนวณด้วยสูตรพื้นฐาน n₀ = Z²p(1−p)/d² ได้เลย ส่วน "Finite" คือกรณีที่ทราบขนาดประชากรทั้งหมด (N) จึงปรับลดขนาดตัวอย่างด้วยสูตรแก้ไขประชากรจำกัด (Finite Population Correction): n = n₀ / [1 + (n₀−1)/N] ในแอปนี้ ทุกแบบที่ให้เลือกประชากรได้จะมีตัวเลือก Infinite/Finite ส่วน Krejcie &amp; Morgan และ Yamane ได้รวมสูตรนี้ไว้ในตัวสูตรอยู่แล้ว (ใช้ N โดยตรง)</p>'+
+        '<p><strong>Design Effect (DEFF):</strong> หากงานวิจัยใช้การสุ่มตัวอย่างแบบกลุ่ม/หลายขั้นตอน (Cluster / Multi-stage sampling) เช่น การสำรวจระดับประเทศที่สุ่มจังหวัด อำเภอ หมู่บ้านตามลำดับ ควรคูณขนาดตัวอย่างที่คำนวณได้ด้วยค่า Design Effect (นิยมใช้ 1.5–2.0 ในงานสำรวจสาธารณสุข) ซึ่งปรับได้ในทุกแบบการคำนวณของแอปนี้</p>'
+    },
+    en:{
+      tagline:'Sample size calculator for public health and health science research',
+      searchPlaceholder:'🔍 Search study designs...',
+      panelInput:'Input Parameters', panelInputEn:'ข้อมูลนำเข้า',
+      panelResult:'Result', panelResultEn:'ผลการคำนวณ',
+      copyBtn:'Copy Summary', printBtn:'Print / Save as PDF',
+      creditLine1:'Developed by <strong>Assoc. Prof. Ratchadaporn Ungcharoen</strong>',
+      footerLine1:'Sample Simple was designed and developed by <strong>Assoc. Prof. Ratchadaporn Ungcharoen</strong>',
+      aboutTitle:'About the Formulas &amp; References', refTitle:'Bibliography / References',
+      aboutBody:'<p>Sample Simple calculates sample sizes using standard formulas taught and used in real public health and medical research, including Cochran\'s, Krejcie &amp; Morgan\'s, and Taro Yamane\'s formulas for estimation; Fleiss\'s formula and mean-comparison tests for group comparisons; Schlesselman\'s formula for case-control studies; a modified Fleiss formula for cohort studies; Fisher\'s Z transformation for correlation; Buderer\'s formula for sensitivity/specificity; and Green\'s guideline for multiple regression.</p>'+
+        '<p>The Z-values used are computed from the inverse normal CDF, so any confidence level and statistical power can be entered — not just the preset 90/95/99% or 80/90/95%.</p>'+
+        '<p><strong>Finite vs. Infinite population:</strong> "Infinite" means the exact population size is unknown, or the population is very large relative to the sample, so the basic formula n₀ = Z²p(1−p)/d² applies directly. "Finite" means the total population size (N) is known, so the sample size is reduced using the Finite Population Correction: n = n₀ / [1 + (n₀−1)/N]. Every design with a population option lets you choose Infinite/Finite; Krejcie &amp; Morgan and Yamane already build this correction into their formula (using N directly).</p>'+
+        '<p><strong>Design Effect (DEFF):</strong> If your study uses cluster or multi-stage sampling — e.g. a national survey sampling provinces, then districts, then villages — multiply the computed sample size by a Design Effect (commonly 1.5–2.0 in public health surveys). This can be adjusted for every calculation in this app.</p>'
+    }
+  };
+  function T(key){ return UI[LANG][key]; }
 
   /* ===================== MATH HELPERS ===================== */
   function normSinv(p){
@@ -288,7 +330,7 @@
   }
 
   function defBlock(rows){
-    return '<div class="f-def-title">โดยที่</div><ul class="f-def-list">'+rows.map(function(r){return '<li>'+r+'</li>';}).join('')+'</ul>';
+    return '<div class="f-def-title">'+L('โดยที่','where:')+'</div><ul class="f-def-list">'+rows.map(function(r){return '<li>'+r+'</li>';}).join('')+'</ul>';
   }
   function concludeLine(text){
     return '<div class="f-conclusion">'+text+'</div>';
@@ -326,54 +368,61 @@
     {
       id:'prop1', group:'estimation',
       title:'ประมาณค่าสัดส่วนประชากร', titleEn:'Single Population Proportion',
-      formulaName:'สูตร Cochran', citation:'Cochran, W. G. (1977)',
+      formulaName:'สูตร Cochran', formulaNameEn:"Cochran's Formula", citation:'Cochran, W. G. (1977)',
       desc:'ใช้เมื่อต้องการประมาณค่าสัดส่วน (ร้อยละ) ของลักษณะหนึ่งในประชากร เช่น ความชุกของโรค อัตราการฉีดวัคซีน หรือสัดส่วนพฤติกรรมสุขภาพ จากกลุ่มตัวอย่างเดียว',
+      descEn:'Used to estimate a proportion (percentage) of a characteristic in a population — such as disease prevalence, vaccination rate, or a health behavior — from a single sample.',
       needsPower:false, kind:'single',
       fields:[
         {id:'p', label:'สัดส่วนที่คาดว่าจะพบ', sub:'Expected proportion (p)', type:'percent', def:50, min:0.1, max:99.9, step:0.1,
-          hint:'หากไม่มีข้อมูลก่อนหน้า ให้ใช้ 50% เพื่อความอนุรักษ์นิยม (จะได้ขนาดตัวอย่างสูงสุด)'},
+          hint:'หากไม่มีข้อมูลก่อนหน้า ให้ใช้ 50% เพื่อความอนุรักษ์นิยม (จะได้ขนาดตัวอย่างสูงสุด)',
+          hintEn:'If no prior data is available, use 50% for the most conservative (largest) sample size.'},
         {id:'d', label:'ความคลาดเคลื่อนที่ยอมรับได้', sub:'Margin of error (d)', type:'percent', def:5, min:0.1, max:50, step:0.1,
-          hint:'ความกว้างของช่วงความเชื่อมั่นที่ยอมรับได้ นิยมใช้ 3–5%'}
+          hint:'ความกว้างของช่วงความเชื่อมั่นที่ยอมรับได้ นิยมใช้ 3–5%',
+          hintEn:'The acceptable margin of error; 3–5% is commonly used.'}
       ],
       compute:function(fv, common){
         var pf=fv.p/100, df=fv.d/100;
-        if(!(pf>0&&pf<1)||!(df>0)) return {kind:'single', error:'กรุณากรอกค่า p ระหว่าง 0–100% (ไม่รวม 0 และ 100) และค่า d มากกว่า 0'};
+        if(!(pf>0&&pf<1)||!(df>0)) return {kind:'single', error:L('กรุณากรอกค่า p ระหว่าง 0–100% (ไม่รวม 0 และ 100) และค่า d มากกว่า 0','Please enter p between 0–100% (exclusive) and d greater than 0.')};
         var Za=zTwo(common.confPct);
         var n0=Za*Za*pf*(1-pf)/(df*df);
         var adj=adjustPop(n0, common);
         var breakdown =
           '<div class="f-line"><span class="f-formula">n₀ = Z² · p(1−p) / d²</span></div>'+
           defBlock([
-            '<span class="f-sym">n₀</span> = ขนาดกลุ่มตัวอย่างที่คำนวณได้',
-            '<span class="f-sym">Z</span> = ค่ามาตรฐานปกติ ณ ระดับความเชื่อมั่น '+fmt(common.confPct,0)+'% (Z = '+fmt(Za,3)+')',
-            '<span class="f-sym">p</span> = สัดส่วนของลักษณะที่สนใจศึกษาที่คาดว่าจะพบในประชากร (p = '+fmt(pf,2)+')',
-            '<span class="f-sym">d</span> = ค่าความคลาดเคลื่อนที่ยอมรับได้ (d = '+fmt(df,2)+')'
+            '<span class="f-sym">n₀</span> = '+L('ขนาดกลุ่มตัวอย่างที่คำนวณได้','the calculated sample size'),
+            '<span class="f-sym">Z</span> = '+L('ค่ามาตรฐานปกติ ณ ระดับความเชื่อมั่น','the standard normal value at a confidence level of')+' '+fmt(common.confPct,0)+'% (Z = '+fmt(Za,3)+')',
+            '<span class="f-sym">p</span> = '+L('สัดส่วนของลักษณะที่สนใจศึกษาที่คาดว่าจะพบในประชากร','the expected proportion of the characteristic in the population')+' (p = '+fmt(pf,2)+')',
+            '<span class="f-sym">d</span> = '+L('ค่าความคลาดเคลื่อนที่ยอมรับได้','the acceptable margin of error')+' (d = '+fmt(df,2)+')'
           ])+
-          '<div class="f-line f-sub">แทนค่า: n₀ = ('+fmt(Za,3)+')² × '+fmt(pf,4)+'(1−'+fmt(pf,4)+') / ('+fmt(df,4)+')²</div>'+
+          '<div class="f-line f-sub">'+L('แทนค่า','Substituting')+': n₀ = ('+fmt(Za,3)+')² × '+fmt(pf,4)+'(1−'+fmt(pf,4)+') / ('+fmt(df,4)+')²</div>'+
           '<div class="f-line f-sub">n₀ = '+fmt(n0,2)+'</div>'+
-          concludeLine('ดังนั้น ขนาดกลุ่มตัวอย่างที่เหมาะสมสำหรับการวิจัยครั้งนี้ เท่ากับ '+fmtInt(adj.nFinal)+' ราย');
+          concludeLine(L('ดังนั้น ขนาดกลุ่มตัวอย่างที่เหมาะสมสำหรับการวิจัยครั้งนี้ เท่ากับ '+fmtInt(adj.nFinal)+' ราย','Therefore, the appropriate sample size for this study is '+fmtInt(adj.nFinal)+' participants.'));
         return {kind:'single', n0:n0, adj:adj, breakdown:breakdown};
       }
     },
     {
       id:'krejcie', group:'estimation',
       title:'ตาราง/สูตร Krejcie & Morgan', titleEn:'Krejcie & Morgan (1970) Table Formula',
-      formulaName:'สูตร Krejcie & Morgan (1970)', citation:'Krejcie, R. V., & Morgan, D. W. (1970)',
+      formulaName:'สูตร Krejcie & Morgan (1970)', formulaNameEn:'Krejcie & Morgan (1970) Formula', citation:'Krejcie, R. V., & Morgan, D. W. (1970)',
       desc:'สูตรที่ Krejcie และ Morgan (1970) ใช้สร้างตารางกำหนดขนาดตัวอย่างสำเร็จรูป นิยมใช้อย่างแพร่หลายในงานวิจัยไทยเมื่อ "ทราบขนาดประชากรที่แน่นอน" (finite population) โดยค่าเริ่มต้น P=0.5, d=0.05, ความเชื่อมั่น 95% จะให้ผลลัพธ์ตรงกับตารางต้นฉบับทุกประการ — ทางคณิตศาสตร์แล้วสูตรนี้เทียบเท่ากับสูตร Cochran ที่ปรับด้วย Finite Population Correction',
+      descEn:"The formula Krejcie and Morgan (1970) used to build their well-known sample size table. Widely used in Thai research when the exact population size is known (finite population). With the default values P=0.5, d=0.05 and 95% confidence, the result matches the original table exactly — mathematically this formula is equivalent to Cochran's formula with a Finite Population Correction.",
       needsPower:false, kind:'single', skipPopulationBlock:true,
       fields:[
         {id:'N', label:'ขนาดประชากรทั้งหมด', sub:'Population size (N)', type:'number', def:1000, min:2, max:100000000, step:1,
-          hint:'ขนาดประชากรที่ทราบแน่นอน เช่น จำนวนนักศึกษาทั้งหมดในมหาวิทยาลัย จำนวนพนักงานทั้งองค์กร'},
+          hint:'ขนาดประชากรที่ทราบแน่นอน เช่น จำนวนนักศึกษาทั้งหมดในมหาวิทยาลัย จำนวนพนักงานทั้งองค์กร',
+          hintEn:'The known total population size, e.g. total students at a university, or total employees at an organization.'},
         {id:'P', label:'สัดส่วนที่คาดว่าจะพบในประชากร', sub:'Population proportion (P)', type:'percent', def:50, min:0.1, max:99.9, step:0.1,
-          hint:'ตามตารางต้นฉบับใช้ P=0.5 (อนุรักษ์นิยมที่สุด ให้ขนาดตัวอย่างสูงสุด)'},
+          hint:'ตามตารางต้นฉบับใช้ P=0.5 (อนุรักษ์นิยมที่สุด ให้ขนาดตัวอย่างสูงสุด)',
+          hintEn:'The original table uses P=0.5 (most conservative, gives the largest sample size).'},
         {id:'d', label:'ความคลาดเคลื่อนที่ยอมรับได้', sub:'Degree of accuracy (d)', type:'percent', def:5, min:0.1, max:50, step:0.1,
-          hint:'ตามตารางต้นฉบับใช้ d=0.05 (5%)'}
+          hint:'ตามตารางต้นฉบับใช้ d=0.05 (5%)',
+          hintEn:'The original table uses d=0.05 (5%).'}
       ],
       compute:function(fv, common){
         var N=fv.N, P=fv.P/100, d=fv.d/100;
-        if(!(N>1)) return {kind:'single', error:'กรุณากรอกขนาดประชากร (N) มากกว่า 1'};
-        if(!(P>0&&P<1)) return {kind:'single', error:'กรุณากรอกค่า P ระหว่าง 0–100% (ไม่รวม 0 และ 100)'};
-        if(!(d>0)) return {kind:'single', error:'กรุณากรอกค่า d มากกว่า 0'};
+        if(!(N>1)) return {kind:'single', error:L('กรุณากรอกขนาดประชากร (N) มากกว่า 1','Please enter a population size (N) greater than 1.')};
+        if(!(P>0&&P<1)) return {kind:'single', error:L('กรุณากรอกค่า P ระหว่าง 0–100% (ไม่รวม 0 และ 100)','Please enter P between 0–100% (exclusive).')};
+        if(!(d>0)) return {kind:'single', error:L('กรุณากรอกค่า d มากกว่า 0','Please enter d greater than 0.')};
         var Za=zTwo(common.confPct);
         var X2=Za*Za;
         var n0 = (X2*N*P*(1-P)) / (d*d*(N-1) + X2*P*(1-P));
@@ -382,98 +431,105 @@
         var breakdown =
           '<div class="f-line"><span class="f-formula">n = X²·N·P(1−P) / [d²(N−1) + X²·P(1−P)]</span></div>'+
           defBlock([
-            '<span class="f-sym">n</span> = ขนาดกลุ่มตัวอย่าง',
-            '<span class="f-sym">X²</span> = ค่าไคสแควร์ที่องศาอิสระเท่ากับ 1 ณ ระดับความเชื่อมั่น '+fmt(common.confPct,0)+'% (X² = '+fmt(X2,3)+')',
-            '<span class="f-sym">N</span> = ขนาดประชากร (N = '+fmtInt(N)+')',
-            '<span class="f-sym">P</span> = สัดส่วนของประชากร (P = '+fmt(P,2)+')',
-            '<span class="f-sym">d</span> = ระดับความคลาดเคลื่อนที่ยอมรับได้ (d = '+fmt(d,2)+')'
+            '<span class="f-sym">n</span> = '+L('ขนาดกลุ่มตัวอย่าง','the sample size'),
+            '<span class="f-sym">X²</span> = '+L('ค่าไคสแควร์ที่องศาอิสระเท่ากับ 1 ณ ระดับความเชื่อมั่น','the chi-square value at 1 degree of freedom, at a confidence level of')+' '+fmt(common.confPct,0)+'% (X² = '+fmt(X2,3)+')',
+            '<span class="f-sym">N</span> = '+L('ขนาดประชากร','the population size')+' (N = '+fmtInt(N)+')',
+            '<span class="f-sym">P</span> = '+L('สัดส่วนของประชากร','the population proportion')+' (P = '+fmt(P,2)+')',
+            '<span class="f-sym">d</span> = '+L('ระดับความคลาดเคลื่อนที่ยอมรับได้','the acceptable margin of error')+' (d = '+fmt(d,2)+')'
           ])+
-          '<div class="f-line f-sub">แทนค่า: n = ('+fmt(X2,3)+')('+fmtInt(N)+')('+fmt(P,3)+')(1−'+fmt(P,3)+') / [('+fmt(d,3)+')²('+fmtInt(N)+'−1) + ('+fmt(X2,3)+')('+fmt(P,3)+')(1−'+fmt(P,3)+')]</div>'+
+          '<div class="f-line f-sub">'+L('แทนค่า','Substituting')+': n = ('+fmt(X2,3)+')('+fmtInt(N)+')('+fmt(P,3)+')(1−'+fmt(P,3)+') / [('+fmt(d,3)+')²('+fmtInt(N)+'−1) + ('+fmt(X2,3)+')('+fmt(P,3)+')(1−'+fmt(P,3)+')]</div>'+
           '<div class="f-line f-sub">n = '+fmt(n0,2)+'</div>'+
-          (isClassic?'<div class="f-line f-sub" style="margin-top:4px;">✓ ค่าที่ใช้ตรงกับตารางต้นฉบับของ Krejcie &amp; Morgan (1970) (P=0.5, d=0.05, ความเชื่อมั่น 95%)</div>':'')+
-          concludeLine('ดังนั้น ขนาดกลุ่มตัวอย่างที่เหมาะสมสำหรับการวิจัยครั้งนี้ เท่ากับ '+fmtInt(adj.nFinal)+' ราย');
+          (isClassic?'<div class="f-line f-sub" style="margin-top:4px;">'+L('✓ ค่าที่ใช้ตรงกับตารางต้นฉบับของ Krejcie &amp; Morgan (1970) (P=0.5, d=0.05, ความเชื่อมั่น 95%)','✓ These values match the original Krejcie &amp; Morgan (1970) table (P=0.5, d=0.05, 95% confidence).')+'</div>':'')+
+          concludeLine(L('ดังนั้น ขนาดกลุ่มตัวอย่างที่เหมาะสมสำหรับการวิจัยครั้งนี้ เท่ากับ '+fmtInt(adj.nFinal)+' ราย','Therefore, the appropriate sample size for this study is '+fmtInt(adj.nFinal)+' participants.'));
         return {kind:'single', n0:n0, adj:adj, breakdown:breakdown};
       }
     },
     {
       id:'yamane', group:'estimation',
       title:'สูตร Taro Yamane', titleEn:'Taro Yamane (1967) Formula',
-      formulaName:'สูตร Yamane (1967)', citation:'Yamane, T. (1967)',
+      formulaName:'สูตร Yamane (1967)', formulaNameEn:"Yamane's Formula (1967)", citation:'Yamane, T. (1967)',
       desc:'สูตรอย่างง่ายสำหรับกำหนดขนาดตัวอย่างจากประชากรที่ทราบขนาดแน่นอน นิยมใช้อย่างแพร่หลายในงานวิจัยไทยด้านสังคมศาสตร์และสาธารณสุข เป็นสูตรที่ประมาณค่าจาก Cochran โดยกำหนด P=0.5 และความเชื่อมั่น 95% ไว้ตายตัว ทำให้เหลือเพียงกรอกขนาดประชากร (N) และค่าความคลาดเคลื่อนที่ยอมรับได้ (e)',
+      descEn:"A simplified formula for determining sample size from a population of known size. Widely used in Thai social science and public health research. It approximates Cochran's formula by fixing P=0.5 and a 95% confidence level, leaving only the population size (N) and the acceptable margin of error (e) to enter.",
       needsPower:false, kind:'single', skipPopulationBlock:true, skipConfidenceBlock:true,
       fields:[
         {id:'N', label:'ขนาดประชากรทั้งหมด', sub:'Population size (N)', type:'number', def:1000, min:2, max:100000000, step:1,
-          hint:'ขนาดประชากรที่ทราบแน่นอน'},
+          hint:'ขนาดประชากรที่ทราบแน่นอน', hintEn:'The known total population size.'},
         {id:'e', label:'ค่าความคลาดเคลื่อนที่ยอมรับได้', sub:'Precision level (e)', type:'percent', def:5, min:0.1, max:50, step:0.1,
-          hint:'นิยมใช้ 5% (0.05) หรือ 10% (0.10) แล้วแต่ความแม่นยำที่ต้องการ'}
+          hint:'นิยมใช้ 5% (0.05) หรือ 10% (0.10) แล้วแต่ความแม่นยำที่ต้องการ',
+          hintEn:'5% (0.05) or 10% (0.10) is commonly used depending on the precision needed.'}
       ],
       compute:function(fv, common){
         var N=fv.N, e=fv.e/100;
-        if(!(N>1)) return {kind:'single', error:'กรุณากรอกขนาดประชากร (N) มากกว่า 1'};
-        if(!(e>0)) return {kind:'single', error:'กรุณากรอกค่า e มากกว่า 0'};
+        if(!(N>1)) return {kind:'single', error:L('กรุณากรอกขนาดประชากร (N) มากกว่า 1','Please enter a population size (N) greater than 1.')};
+        if(!(e>0)) return {kind:'single', error:L('กรุณากรอกค่า e มากกว่า 0','Please enter e greater than 0.')};
         var n0 = N/(1+N*e*e);
         var adj = adjustPop(n0, common);
         var breakdown =
           '<div class="f-line"><span class="f-formula">n = N / (1 + N·e²)</span></div>'+
           defBlock([
-            '<span class="f-sym">n</span> = ขนาดกลุ่มตัวอย่าง',
-            '<span class="f-sym">N</span> = ขนาดประชากร (N = '+fmtInt(N)+')',
-            '<span class="f-sym">e</span> = ค่าความคลาดเคลื่อนที่ยอมรับได้ (e = '+fmt(e,2)+')'
+            '<span class="f-sym">n</span> = '+L('ขนาดกลุ่มตัวอย่าง','the sample size'),
+            '<span class="f-sym">N</span> = '+L('ขนาดประชากร','the population size')+' (N = '+fmtInt(N)+')',
+            '<span class="f-sym">e</span> = '+L('ค่าความคลาดเคลื่อนที่ยอมรับได้','the acceptable margin of error')+' (e = '+fmt(e,2)+')'
           ])+
-          '<div class="f-line f-sub">แทนค่า: n = '+fmtInt(N)+' / (1 + '+fmtInt(N)+'×('+fmt(e,4)+')²)</div>'+
+          '<div class="f-line f-sub">'+L('แทนค่า','Substituting')+': n = '+fmtInt(N)+' / (1 + '+fmtInt(N)+'×('+fmt(e,4)+')²)</div>'+
           '<div class="f-line f-sub">n = '+fmt(n0,2)+'</div>'+
-          '<div class="f-line f-sub" style="margin-top:4px;">หมายเหตุ: สูตรนี้กำหนดระดับความเชื่อมั่น 95% และ P=0.5 ไว้ในตัวสูตรแล้ว (ประมาณค่า Z²P(1−P)≈1)</div>'+
-          concludeLine('ดังนั้น ขนาดกลุ่มตัวอย่างที่เหมาะสมสำหรับการวิจัยครั้งนี้ เท่ากับ '+fmtInt(adj.nFinal)+' ราย');
+          '<div class="f-line f-sub" style="margin-top:4px;">'+L('หมายเหตุ: สูตรนี้กำหนดระดับความเชื่อมั่น 95% และ P=0.5 ไว้ในตัวสูตรแล้ว (ประมาณค่า Z²P(1−P)≈1)','Note: this formula fixes the confidence level at 95% and P=0.5 (approximating Z²P(1−P)≈1).')+'</div>'+
+          concludeLine(L('ดังนั้น ขนาดกลุ่มตัวอย่างที่เหมาะสมสำหรับการวิจัยครั้งนี้ เท่ากับ '+fmtInt(adj.nFinal)+' ราย','Therefore, the appropriate sample size for this study is '+fmtInt(adj.nFinal)+' participants.'));
         return {kind:'single', n0:n0, adj:adj, breakdown:breakdown};
       }
     },
     {
       id:'mean1', group:'estimation',
       title:'ประมาณค่าเฉลี่ยประชากร', titleEn:'Single Population Mean',
-      formulaName:'สูตร Cochran (สำหรับค่าเฉลี่ย)', citation:'Cochran, W. G. (1977)',
+      formulaName:'สูตร Cochran (สำหรับค่าเฉลี่ย)', formulaNameEn:"Cochran's Formula (for means)", citation:'Cochran, W. G. (1977)',
       desc:'ใช้เมื่อต้องการประมาณค่าเฉลี่ยของตัวแปรเชิงปริมาณในประชากร เช่น ค่าเฉลี่ยความดันโลหิต น้ำหนักตัว หรือคะแนนความรู้ จากกลุ่มตัวอย่างเดียว',
+      descEn:'Used to estimate the mean of a quantitative variable in a population — such as mean blood pressure, body weight, or knowledge score — from a single sample.',
       needsPower:false, kind:'single',
       fields:[
         {id:'sd', label:'ส่วนเบี่ยงเบนมาตรฐานที่คาดไว้', sub:'Expected SD (σ)', type:'number', def:10, min:0.01, max:100000, step:0.01,
-          hint:'อ้างอิงจากงานวิจัยก่อนหน้าหรือการศึกษานำร่อง (pilot study) หน่วยเดียวกับตัวแปรที่วัด'},
+          hint:'อ้างอิงจากงานวิจัยก่อนหน้าหรือการศึกษานำร่อง (pilot study) หน่วยเดียวกับตัวแปรที่วัด',
+          hintEn:'Based on prior research or a pilot study; use the same unit as the measured variable.'},
         {id:'d', label:'ความคลาดเคลื่อนที่ยอมรับได้', sub:'Margin of error (d)', type:'number', def:2, min:0.01, max:100000, step:0.01,
-          hint:'ความกว้างของช่วงความเชื่อมั่นที่ยอมรับได้ หน่วยเดียวกับตัวแปรที่วัด'}
+          hint:'ความกว้างของช่วงความเชื่อมั่นที่ยอมรับได้ หน่วยเดียวกับตัวแปรที่วัด',
+          hintEn:'The acceptable margin of error; same unit as the measured variable.'}
       ],
       compute:function(fv, common){
         var sd=fv.sd, d=fv.d;
-        if(!(sd>0)||!(d>0)) return {kind:'single', error:'กรุณากรอกค่า SD และค่า d ให้มากกว่า 0'};
+        if(!(sd>0)||!(d>0)) return {kind:'single', error:L('กรุณากรอกค่า SD และค่า d ให้มากกว่า 0','Please enter SD and d greater than 0.')};
         var Za=zTwo(common.confPct);
         var n0=Za*Za*sd*sd/(d*d);
         var adj=adjustPop(n0, common);
         var breakdown =
           '<div class="f-line"><span class="f-formula">n₀ = Z² · σ² / d²</span></div>'+
           defBlock([
-            '<span class="f-sym">n₀</span> = ขนาดกลุ่มตัวอย่าง',
-            '<span class="f-sym">Z</span> = ค่ามาตรฐานปกติ ณ ระดับความเชื่อมั่น '+fmt(common.confPct,0)+'% (Z = '+fmt(Za,3)+')',
-            '<span class="f-sym">σ</span> = ส่วนเบี่ยงเบนมาตรฐานของตัวแปรที่ศึกษา (σ = '+fmt(sd,2)+')',
-            '<span class="f-sym">d</span> = ค่าความคลาดเคลื่อนที่ยอมรับได้ (d = '+fmt(d,2)+')'
+            '<span class="f-sym">n₀</span> = '+L('ขนาดกลุ่มตัวอย่าง','the sample size'),
+            '<span class="f-sym">Z</span> = '+L('ค่ามาตรฐานปกติ ณ ระดับความเชื่อมั่น','the standard normal value at a confidence level of')+' '+fmt(common.confPct,0)+'% (Z = '+fmt(Za,3)+')',
+            '<span class="f-sym">σ</span> = '+L('ส่วนเบี่ยงเบนมาตรฐานของตัวแปรที่ศึกษา','the standard deviation of the variable being studied')+' (σ = '+fmt(sd,2)+')',
+            '<span class="f-sym">d</span> = '+L('ค่าความคลาดเคลื่อนที่ยอมรับได้','the acceptable margin of error')+' (d = '+fmt(d,2)+')'
           ])+
-          '<div class="f-line f-sub">แทนค่า: n₀ = ('+fmt(Za,3)+')² × ('+fmt(sd,2)+')² / ('+fmt(d,2)+')²</div>'+
+          '<div class="f-line f-sub">'+L('แทนค่า','Substituting')+': n₀ = ('+fmt(Za,3)+')² × ('+fmt(sd,2)+')² / ('+fmt(d,2)+')²</div>'+
           '<div class="f-line f-sub">n₀ = '+fmt(n0,2)+'</div>'+
-          concludeLine('ดังนั้น ขนาดกลุ่มตัวอย่างที่เหมาะสมสำหรับการวิจัยครั้งนี้ เท่ากับ '+fmtInt(adj.nFinal)+' ราย');
+          concludeLine(L('ดังนั้น ขนาดกลุ่มตัวอย่างที่เหมาะสมสำหรับการวิจัยครั้งนี้ เท่ากับ '+fmtInt(adj.nFinal)+' ราย','Therefore, the appropriate sample size for this study is '+fmtInt(adj.nFinal)+' participants.'));
         return {kind:'single', n0:n0, adj:adj, breakdown:breakdown};
       }
     },
     {
       id:'twoprop', group:'comparison',
       title:'เปรียบเทียบสัดส่วน 2 กลุ่ม', titleEn:'Two Independent Proportions',
-      formulaName:'สูตร Fleiss', citation:'Fleiss, Levin, & Paik (2003)',
+      formulaName:'สูตร Fleiss', formulaNameEn:"Fleiss's Formula", citation:'Fleiss, Levin, & Paik (2003)',
       desc:'ใช้เมื่อต้องการเปรียบเทียบสัดส่วนของผลลัพธ์ระหว่างสองกลุ่มอิสระ เช่น อัตราการหายจากโรคระหว่างกลุ่มทดลองกับกลุ่มควบคุมในการวิจัยเชิงทดลอง (RCT)',
+      descEn:'Used to compare the proportion of an outcome between two independent groups — such as recovery rate between a treatment group and a control group in a randomized controlled trial (RCT).',
       needsPower:true, kind:'twoGroup',
       fields:[
         {id:'p1', label:'สัดส่วนที่คาดว่าจะพบในกลุ่มที่ 1', sub:'Proportion in group 1 (p1)', type:'percent', def:50, min:0.1, max:99.9, step:0.1},
         {id:'p2', label:'สัดส่วนที่คาดว่าจะพบในกลุ่มที่ 2', sub:'Proportion in group 2 (p2)', type:'percent', def:70, min:0.1, max:99.9, step:0.1,
-          hint:'ควรอ้างอิงจากงานวิจัยก่อนหน้า หรือผลต่างที่มีนัยสำคัญทางคลินิก (clinically meaningful difference)'}
+          hint:'ควรอ้างอิงจากงานวิจัยก่อนหน้า หรือผลต่างที่มีนัยสำคัญทางคลินิก (clinically meaningful difference)',
+          hintEn:'Should be based on prior research or a clinically meaningful difference.'}
       ],
       compute:function(fv, common){
         var p1=fv.p1/100, p2=fv.p2/100;
-        if(!(p1>0&&p1<1)||!(p2>0&&p2<1)) return {kind:'twoGroup', error:'กรุณากรอกค่า p1 และ p2 ระหว่าง 0–100% (ไม่รวม 0 และ 100)'};
-        if(Math.abs(p1-p2)<1e-9) return {kind:'twoGroup', error:'ค่า p1 และ p2 ต้องไม่เท่ากัน จึงจะสามารถคำนวณขนาดตัวอย่างเพื่อทดสอบความแตกต่างได้'};
+        if(!(p1>0&&p1<1)||!(p2>0&&p2<1)) return {kind:'twoGroup', error:L('กรุณากรอกค่า p1 และ p2 ระหว่าง 0–100% (ไม่รวม 0 และ 100)','Please enter p1 and p2 between 0–100% (exclusive).')};
+        if(Math.abs(p1-p2)<1e-9) return {kind:'twoGroup', error:L('ค่า p1 และ p2 ต้องไม่เท่ากัน จึงจะสามารถคำนวณขนาดตัวอย่างเพื่อทดสอบความแตกต่างได้','p1 and p2 must not be equal in order to calculate a sample size for detecting a difference.')};
         var pbar=(p1+p2)/2;
         var Za=zTwo(common.confPct), Zb=zPow(common.powPct);
         var num = Za*Math.sqrt(2*pbar*(1-pbar)) + Zb*Math.sqrt(p1*(1-p1)+p2*(1-p2));
@@ -482,202 +538,212 @@
         var breakdown =
           '<div class="f-line"><span class="f-formula">n₀ = [Z·√(2p̄(1−p̄)) + Z<sub>β</sub>·√(p1(1−p1)+p2(1−p2))]² / (p1−p2)²</span></div>'+
           defBlock([
-            '<span class="f-sym">n₀</span> = ขนาดกลุ่มตัวอย่างต่อกลุ่ม',
-            '<span class="f-sym">Z</span> = ค่ามาตรฐานปกติ ณ ระดับความเชื่อมั่น '+fmt(common.confPct,0)+'% (Z = '+fmt(Za,3)+')',
-            '<span class="f-sym">Z<sub>β</sub></span> = ค่ามาตรฐานปกติ ณ อำนาจการทดสอบ '+fmt(common.powPct,0)+'% (Z<sub>β</sub> = '+fmt(Zb,3)+')',
-            '<span class="f-sym">p1, p2</span> = สัดส่วนที่คาดว่าจะพบในกลุ่มที่ 1 และกลุ่มที่ 2 (p1 = '+fmt(p1,2)+', p2 = '+fmt(p2,2)+')',
-            '<span class="f-sym">p̄</span> = สัดส่วนเฉลี่ยของทั้งสองกลุ่ม (p̄ = (p1+p2)/2 = '+fmt(pbar,4)+')'
+            '<span class="f-sym">n₀</span> = '+L('ขนาดกลุ่มตัวอย่างต่อกลุ่ม','the sample size per group'),
+            '<span class="f-sym">Z</span> = '+L('ค่ามาตรฐานปกติ ณ ระดับความเชื่อมั่น','the standard normal value at a confidence level of')+' '+fmt(common.confPct,0)+'% (Z = '+fmt(Za,3)+')',
+            '<span class="f-sym">Z<sub>β</sub></span> = '+L('ค่ามาตรฐานปกติ ณ อำนาจการทดสอบ','the standard normal value at a statistical power of')+' '+fmt(common.powPct,0)+'% (Z<sub>β</sub> = '+fmt(Zb,3)+')',
+            '<span class="f-sym">p1, p2</span> = '+L('สัดส่วนที่คาดว่าจะพบในกลุ่มที่ 1 และกลุ่มที่ 2','the expected proportions in group 1 and group 2')+' (p1 = '+fmt(p1,2)+', p2 = '+fmt(p2,2)+')',
+            '<span class="f-sym">p̄</span> = '+L('สัดส่วนเฉลี่ยของทั้งสองกลุ่ม','the average proportion of both groups')+' (p̄ = (p1+p2)/2 = '+fmt(pbar,4)+')'
           ])+
-          '<div class="f-line f-sub">แทนค่า: n₀ = ['+fmt(Za,3)+'×√(2×'+fmt(pbar,4)+'(1−'+fmt(pbar,4)+')) + '+fmt(Zb,3)+'×√('+fmt(p1,3)+'(1−'+fmt(p1,3)+')+'+fmt(p2,3)+'(1−'+fmt(p2,3)+'))]² / ('+fmt(p1,3)+'−'+fmt(p2,3)+')²</div>'+
-          '<div class="f-line f-sub">n₀ = '+fmt(n0,2)+' ต่อกลุ่ม</div>'+
-          concludeLine('ดังนั้น ขนาดกลุ่มตัวอย่างที่เหมาะสมสำหรับการวิจัยครั้งนี้ เท่ากับกลุ่มละ '+fmtInt(adj.nFinal)+' ราย รวมทั้งสิ้น '+fmtInt(ceilOrDash(adj.nFinal)*2)+' ราย');
+          '<div class="f-line f-sub">'+L('แทนค่า','Substituting')+': n₀ = ['+fmt(Za,3)+'×√(2×'+fmt(pbar,4)+'(1−'+fmt(pbar,4)+')) + '+fmt(Zb,3)+'×√('+fmt(p1,3)+'(1−'+fmt(p1,3)+')+'+fmt(p2,3)+'(1−'+fmt(p2,3)+'))]² / ('+fmt(p1,3)+'−'+fmt(p2,3)+')²</div>'+
+          '<div class="f-line f-sub">n₀ = '+fmt(n0,2)+' '+L('ต่อกลุ่ม','per group')+'</div>'+
+          concludeLine(L('ดังนั้น ขนาดกลุ่มตัวอย่างที่เหมาะสมสำหรับการวิจัยครั้งนี้ เท่ากับกลุ่มละ '+fmtInt(adj.nFinal)+' ราย รวมทั้งสิ้น '+fmtInt(ceilOrDash(adj.nFinal)*2)+' ราย','Therefore, the appropriate sample size for this study is '+fmtInt(adj.nFinal)+' participants per group, for a total of '+fmtInt(ceilOrDash(adj.nFinal)*2)+' participants.'));
         return {kind:'twoGroup', n0:n0, adj:adj, breakdown:breakdown};
       }
     },
     {
       id:'twomean', group:'comparison',
       title:'เปรียบเทียบค่าเฉลี่ย 2 กลุ่ม', titleEn:'Two Independent Means',
-      formulaName:'สูตรเปรียบเทียบค่าเฉลี่ยสองกลุ่มอิสระ', citation:'Daniel & Cross (2013)',
+      formulaName:'สูตรเปรียบเทียบค่าเฉลี่ยสองกลุ่มอิสระ', formulaNameEn:'Two Independent Means Formula', citation:'Daniel & Cross (2013)',
       desc:'ใช้เมื่อต้องการเปรียบเทียบค่าเฉลี่ยของตัวแปรเชิงปริมาณระหว่างสองกลุ่มอิสระ เช่น ค่าเฉลี่ยน้ำหนักตัวที่ลดลงระหว่างกลุ่มที่ได้รับโปรแกรมกับกลุ่มควบคุม',
+      descEn:'Used to compare the mean of a quantitative variable between two independent groups — such as mean weight loss between a group receiving an intervention and a control group.',
       needsPower:true, kind:'twoGroup',
       fields:[
         {id:'sd', label:'ส่วนเบี่ยงเบนมาตรฐานร่วม', sub:'Common/pooled SD (σ)', type:'number', def:10, min:0.01, max:100000, step:0.01,
-          hint:'ส่วนเบี่ยงเบนมาตรฐานที่ใช้ร่วมกันของทั้งสองกลุ่ม'},
+          hint:'ส่วนเบี่ยงเบนมาตรฐานที่ใช้ร่วมกันของทั้งสองกลุ่ม', hintEn:'The pooled standard deviation shared by both groups.'},
         {id:'delta', label:'ผลต่างของค่าเฉลี่ยที่ต้องการตรวจพบ', sub:'Mean difference (Δ)', type:'number', def:5, min:0.01, max:100000, step:0.01,
-          hint:'ผลต่างที่มีความหมายทางคลินิกหรือทางวิชาการ หน่วยเดียวกับตัวแปรที่วัด'}
+          hint:'ผลต่างที่มีความหมายทางคลินิกหรือทางวิชาการ หน่วยเดียวกับตัวแปรที่วัด',
+          hintEn:'A clinically or academically meaningful difference; same unit as the measured variable.'}
       ],
       compute:function(fv, common){
         var sd=fv.sd, delta=fv.delta;
-        if(!(sd>0)||!(delta>0)) return {kind:'twoGroup', error:'กรุณากรอกค่า SD และผลต่างของค่าเฉลี่ย (Δ) ให้มากกว่า 0'};
+        if(!(sd>0)||!(delta>0)) return {kind:'twoGroup', error:L('กรุณากรอกค่า SD และผลต่างของค่าเฉลี่ย (Δ) ให้มากกว่า 0','Please enter SD and mean difference (Δ) greater than 0.')};
         var Za=zTwo(common.confPct), Zb=zPow(common.powPct);
         var n0 = 2*(Za+Zb)*(Za+Zb)*sd*sd/(delta*delta);
         var adj=adjustPop(n0, common);
         var breakdown =
           '<div class="f-line"><span class="f-formula">n₀ = 2(Z + Z<sub>β</sub>)² · σ² / Δ²</span></div>'+
           defBlock([
-            '<span class="f-sym">n₀</span> = ขนาดกลุ่มตัวอย่างต่อกลุ่ม',
-            '<span class="f-sym">Z</span> = ค่ามาตรฐานปกติ ณ ระดับความเชื่อมั่น '+fmt(common.confPct,0)+'% (Z = '+fmt(Za,3)+')',
-            '<span class="f-sym">Z<sub>β</sub></span> = ค่ามาตรฐานปกติ ณ อำนาจการทดสอบ '+fmt(common.powPct,0)+'% (Z<sub>β</sub> = '+fmt(Zb,3)+')',
-            '<span class="f-sym">σ</span> = ส่วนเบี่ยงเบนมาตรฐานร่วมของทั้งสองกลุ่ม (σ = '+fmt(sd,2)+')',
-            '<span class="f-sym">Δ</span> = ผลต่างของค่าเฉลี่ยที่ต้องการตรวจพบ (Δ = '+fmt(delta,2)+')'
+            '<span class="f-sym">n₀</span> = '+L('ขนาดกลุ่มตัวอย่างต่อกลุ่ม','the sample size per group'),
+            '<span class="f-sym">Z</span> = '+L('ค่ามาตรฐานปกติ ณ ระดับความเชื่อมั่น','the standard normal value at a confidence level of')+' '+fmt(common.confPct,0)+'% (Z = '+fmt(Za,3)+')',
+            '<span class="f-sym">Z<sub>β</sub></span> = '+L('ค่ามาตรฐานปกติ ณ อำนาจการทดสอบ','the standard normal value at a statistical power of')+' '+fmt(common.powPct,0)+'% (Z<sub>β</sub> = '+fmt(Zb,3)+')',
+            '<span class="f-sym">σ</span> = '+L('ส่วนเบี่ยงเบนมาตรฐานร่วมของทั้งสองกลุ่ม','the pooled standard deviation of both groups')+' (σ = '+fmt(sd,2)+')',
+            '<span class="f-sym">Δ</span> = '+L('ผลต่างของค่าเฉลี่ยที่ต้องการตรวจพบ','the mean difference to be detected')+' (Δ = '+fmt(delta,2)+')'
           ])+
-          '<div class="f-line f-sub">แทนค่า: n₀ = 2×('+fmt(Za,3)+' + '+fmt(Zb,3)+')² × ('+fmt(sd,2)+')² / ('+fmt(delta,2)+')²</div>'+
-          '<div class="f-line f-sub">n₀ = '+fmt(n0,2)+' ต่อกลุ่ม</div>'+
-          concludeLine('ดังนั้น ขนาดกลุ่มตัวอย่างที่เหมาะสมสำหรับการวิจัยครั้งนี้ เท่ากับกลุ่มละ '+fmtInt(adj.nFinal)+' ราย รวมทั้งสิ้น '+fmtInt(ceilOrDash(adj.nFinal)*2)+' ราย');
+          '<div class="f-line f-sub">'+L('แทนค่า','Substituting')+': n₀ = 2×('+fmt(Za,3)+' + '+fmt(Zb,3)+')² × ('+fmt(sd,2)+')² / ('+fmt(delta,2)+')²</div>'+
+          '<div class="f-line f-sub">n₀ = '+fmt(n0,2)+' '+L('ต่อกลุ่ม','per group')+'</div>'+
+          concludeLine(L('ดังนั้น ขนาดกลุ่มตัวอย่างที่เหมาะสมสำหรับการวิจัยครั้งนี้ เท่ากับกลุ่มละ '+fmtInt(adj.nFinal)+' ราย รวมทั้งสิ้น '+fmtInt(ceilOrDash(adj.nFinal)*2)+' ราย','Therefore, the appropriate sample size for this study is '+fmtInt(adj.nFinal)+' participants per group, for a total of '+fmtInt(ceilOrDash(adj.nFinal)*2)+' participants.'));
         return {kind:'twoGroup', n0:n0, adj:adj, breakdown:breakdown};
       }
     },
     {
       id:'onemean_test', group:'comparison',
       title:'เปรียบเทียบค่าเฉลี่ยกับค่าอ้างอิง / ข้อมูลจับคู่', titleEn:'One-Sample / Paired-Sample Mean Test',
-      formulaName:'สูตรทดสอบค่าเฉลี่ยหนึ่งกลุ่ม', citation:'Daniel & Cross (2013)',
+      formulaName:'สูตรทดสอบค่าเฉลี่ยหนึ่งกลุ่ม', formulaNameEn:'One-Sample Mean Test Formula', citation:'Daniel & Cross (2013)',
       desc:'ใช้เมื่อต้องการทดสอบว่าค่าเฉลี่ยของกลุ่มตัวอย่างแตกต่างจากค่าอ้างอิง/ค่ามาตรฐานอย่างมีนัยสำคัญ (เช่น เปรียบเทียบค่าเฉลี่ยความรู้กับเกณฑ์มาตรฐาน) หรือใช้กับการศึกษาแบบวัดผลก่อน-หลัง (Pre-Post / Paired design) ในกลุ่มตัวอย่างเดียวกัน โดยพิจารณาจากผลต่างที่จับคู่กัน',
+      descEn:'Used to test whether a sample mean differs significantly from a reference/standard value (e.g. comparing mean knowledge score to a benchmark), or for pre-post (paired) designs in the same sample, based on the paired differences.',
       needsPower:true, kind:'single',
       fields:[
         {id:'sd', label:'ส่วนเบี่ยงเบนมาตรฐาน (ของค่าที่วัด หรือของผลต่างคู่)', sub:'SD of measure or paired difference (σd)', type:'number', def:5, min:0.01, max:100000, step:0.01,
-          hint:'กรณี Pre-Post ให้ใช้ SD ของผลต่างระหว่างก่อนและหลัง (paired difference)'},
+          hint:'กรณี Pre-Post ให้ใช้ SD ของผลต่างระหว่างก่อนและหลัง (paired difference)',
+          hintEn:'For pre-post studies, use the SD of the difference between before and after (paired difference).'},
         {id:'delta', label:'ผลต่างที่ต้องการตรวจพบ', sub:'Difference to detect (δ)', type:'number', def:2, min:0.01, max:100000, step:0.01,
-          hint:'ผลต่างระหว่างค่าเฉลี่ยกลุ่มตัวอย่างกับค่าอ้างอิง หรือผลต่างก่อน-หลังที่มีความหมายทางคลินิก'}
+          hint:'ผลต่างระหว่างค่าเฉลี่ยกลุ่มตัวอย่างกับค่าอ้างอิง หรือผลต่างก่อน-หลังที่มีความหมายทางคลินิก',
+          hintEn:'The difference between the sample mean and a reference value, or a clinically meaningful pre-post difference.'}
       ],
       compute:function(fv, common){
         var sd=fv.sd, delta=fv.delta;
-        if(!(sd>0)||!(delta>0)) return {kind:'single', error:'กรุณากรอกค่า SD และผลต่างที่ต้องการตรวจพบ (δ) ให้มากกว่า 0'};
+        if(!(sd>0)||!(delta>0)) return {kind:'single', error:L('กรุณากรอกค่า SD และผลต่างที่ต้องการตรวจพบ (δ) ให้มากกว่า 0','Please enter SD and the difference to detect (δ) greater than 0.')};
         var Za=zTwo(common.confPct), Zb=zPow(common.powPct);
         var n0 = (Za+Zb)*(Za+Zb)*sd*sd/(delta*delta);
         var adj=adjustPop(n0, common);
         var breakdown =
           '<div class="f-line"><span class="f-formula">n₀ = (Z + Z<sub>β</sub>)² · σ<sub>d</sub>² / δ²</span></div>'+
           defBlock([
-            '<span class="f-sym">n₀</span> = ขนาดกลุ่มตัวอย่าง',
-            '<span class="f-sym">Z</span> = ค่ามาตรฐานปกติ ณ ระดับความเชื่อมั่น '+fmt(common.confPct,0)+'% (Z = '+fmt(Za,3)+')',
-            '<span class="f-sym">Z<sub>β</sub></span> = ค่ามาตรฐานปกติ ณ อำนาจการทดสอบ '+fmt(common.powPct,0)+'% (Z<sub>β</sub> = '+fmt(Zb,3)+')',
-            '<span class="f-sym">σ<sub>d</sub></span> = ส่วนเบี่ยงเบนมาตรฐานของค่าที่วัด หรือของผลต่างคู่ (σ<sub>d</sub> = '+fmt(sd,2)+')',
-            '<span class="f-sym">δ</span> = ผลต่างที่ต้องการตรวจพบ (δ = '+fmt(delta,2)+')'
+            '<span class="f-sym">n₀</span> = '+L('ขนาดกลุ่มตัวอย่าง','the sample size'),
+            '<span class="f-sym">Z</span> = '+L('ค่ามาตรฐานปกติ ณ ระดับความเชื่อมั่น','the standard normal value at a confidence level of')+' '+fmt(common.confPct,0)+'% (Z = '+fmt(Za,3)+')',
+            '<span class="f-sym">Z<sub>β</sub></span> = '+L('ค่ามาตรฐานปกติ ณ อำนาจการทดสอบ','the standard normal value at a statistical power of')+' '+fmt(common.powPct,0)+'% (Z<sub>β</sub> = '+fmt(Zb,3)+')',
+            '<span class="f-sym">σ<sub>d</sub></span> = '+L('ส่วนเบี่ยงเบนมาตรฐานของค่าที่วัด หรือของผลต่างคู่','the SD of the measured value or paired difference')+' (σ<sub>d</sub> = '+fmt(sd,2)+')',
+            '<span class="f-sym">δ</span> = '+L('ผลต่างที่ต้องการตรวจพบ','the difference to be detected')+' (δ = '+fmt(delta,2)+')'
           ])+
-          '<div class="f-line f-sub">แทนค่า: n₀ = ('+fmt(Za,3)+' + '+fmt(Zb,3)+')² × ('+fmt(sd,2)+')² / ('+fmt(delta,2)+')²</div>'+
+          '<div class="f-line f-sub">'+L('แทนค่า','Substituting')+': n₀ = ('+fmt(Za,3)+' + '+fmt(Zb,3)+')² × ('+fmt(sd,2)+')² / ('+fmt(delta,2)+')²</div>'+
           '<div class="f-line f-sub">n₀ = '+fmt(n0,2)+'</div>'+
-          concludeLine('ดังนั้น ขนาดกลุ่มตัวอย่างที่เหมาะสมสำหรับการวิจัยครั้งนี้ เท่ากับ '+fmtInt(adj.nFinal)+' ราย');
+          concludeLine(L('ดังนั้น ขนาดกลุ่มตัวอย่างที่เหมาะสมสำหรับการวิจัยครั้งนี้ เท่ากับ '+fmtInt(adj.nFinal)+' ราย','Therefore, the appropriate sample size for this study is '+fmtInt(adj.nFinal)+' participants.'));
         return {kind:'single', n0:n0, adj:adj, breakdown:breakdown};
       }
     },
     {
       id:'casecontrol', group:'epi',
       title:'Case-Control Study', titleEn:'Case-Control Study (Odds Ratio)',
-      formulaName:'สูตร Schlesselman', citation:'Schlesselman, J. J. (1982)',
+      formulaName:'สูตร Schlesselman', formulaNameEn:"Schlesselman's Formula", citation:'Schlesselman, J. J. (1982)',
       desc:'ใช้ในการศึกษาแบบ Case-Control เพื่อเปรียบเทียบสัดส่วนการสัมผัสปัจจัยเสี่ยงระหว่างกลุ่มผู้ป่วย (cases) และกลุ่มควบคุม (controls) โดยอิงค่า Odds Ratio ที่คาดหวัง',
+      descEn:'Used in case-control studies to compare exposure proportions between cases and controls, based on an expected Odds Ratio.',
       needsPower:true, kind:'twoGroup',
       fields:[
         {id:'p0', label:'สัดส่วนการสัมผัสปัจจัยเสี่ยงในกลุ่มควบคุม', sub:'Exposure prevalence in controls (p0)', type:'percent', def:20, min:0.1, max:99.9, step:0.1},
         {id:'or', label:'Odds Ratio ที่คาดหวัง', sub:'Expected OR', type:'number', def:2, min:0.01, max:1000, step:0.01,
-          hint:'ค่า OR ที่ต้องการมีอำนาจตรวจพบ ต้องไม่เท่ากับ 1'}
+          hint:'ค่า OR ที่ต้องการมีอำนาจตรวจพบ ต้องไม่เท่ากับ 1', hintEn:'The OR you want to be able to detect; must not equal 1.'}
       ],
       compute:function(fv, common){
         var p0=fv.p0/100, or=fv.or;
-        if(!(p0>0&&p0<1)||!(or>0)) return {kind:'twoGroup', error:'กรุณากรอกค่า p0 ระหว่าง 0–100% และ OR มากกว่า 0'};
-        if(Math.abs(or-1)<1e-6) return {kind:'twoGroup', error:'ค่า OR ต้องไม่เท่ากับ 1 (OR=1 หมายถึงไม่มีความสัมพันธ์ จึงไม่สามารถคำนวณขนาดตัวอย่างได้)'};
+        if(!(p0>0&&p0<1)||!(or>0)) return {kind:'twoGroup', error:L('กรุณากรอกค่า p0 ระหว่าง 0–100% และ OR มากกว่า 0','Please enter p0 between 0–100% and OR greater than 0.')};
+        if(Math.abs(or-1)<1e-6) return {kind:'twoGroup', error:L('ค่า OR ต้องไม่เท่ากับ 1 (OR=1 หมายถึงไม่มีความสัมพันธ์ จึงไม่สามารถคำนวณขนาดตัวอย่างได้)','OR must not equal 1 (OR=1 means no association, so a sample size cannot be calculated).')};
         var p1=(or*p0)/(1-p0+or*p0);
-        if(!(p1>0&&p1<1)) return {kind:'twoGroup', error:'ค่าที่คำนวณได้ไม่อยู่ในช่วงที่เหมาะสม กรุณาปรับค่า p0 หรือ OR'};
+        if(!(p1>0&&p1<1)) return {kind:'twoGroup', error:L('ค่าที่คำนวณได้ไม่อยู่ในช่วงที่เหมาะสม กรุณาปรับค่า p0 หรือ OR','The calculated value is out of range. Please adjust p0 or OR.')};
         var pbar=(p1+p0)/2;
         var Za=zTwo(common.confPct), Zb=zPow(common.powPct);
         var num = Za*Math.sqrt(2*pbar*(1-pbar)) + Zb*Math.sqrt(p1*(1-p1)+p0*(1-p0));
         var n0 = (num*num)/((p1-p0)*(p1-p0));
         var adj=adjustPop(n0, common);
         var breakdown =
-          '<div class="f-line f-sub">คำนวณสัดส่วนการสัมผัสปัจจัยเสี่ยงในกลุ่มผู้ป่วยก่อน: p1 = (OR×p0)/(1−p0+OR×p0) = ('+fmt(or,2)+'×'+fmt(p0,3)+')/(1−'+fmt(p0,3)+'+'+fmt(or,2)+'×'+fmt(p0,3)+') = '+fmt(p1,4)+'</div>'+
+          '<div class="f-line f-sub">'+L('คำนวณสัดส่วนการสัมผัสปัจจัยเสี่ยงในกลุ่มผู้ป่วยก่อน','First, calculate the exposure proportion among cases')+': p1 = (OR×p0)/(1−p0+OR×p0) = ('+fmt(or,2)+'×'+fmt(p0,3)+')/(1−'+fmt(p0,3)+'+'+fmt(or,2)+'×'+fmt(p0,3)+') = '+fmt(p1,4)+'</div>'+
           '<div class="f-line"><span class="f-formula">n₀ = [Z·√(2p̄(1−p̄)) + Z<sub>β</sub>·√(p1(1−p1)+p0(1−p0))]² / (p1−p0)²</span></div>'+
           defBlock([
-            '<span class="f-sym">n₀</span> = ขนาดกลุ่มตัวอย่างต่อกลุ่ม',
-            '<span class="f-sym">Z</span> = ค่ามาตรฐานปกติ ณ ระดับความเชื่อมั่น '+fmt(common.confPct,0)+'% (Z = '+fmt(Za,3)+')',
-            '<span class="f-sym">Z<sub>β</sub></span> = ค่ามาตรฐานปกติ ณ อำนาจการทดสอบ '+fmt(common.powPct,0)+'% (Z<sub>β</sub> = '+fmt(Zb,3)+')',
-            '<span class="f-sym">p0</span> = สัดส่วนการสัมผัสปัจจัยเสี่ยงในกลุ่มควบคุม (p0 = '+fmt(p0,2)+')',
-            '<span class="f-sym">OR</span> = ค่า Odds Ratio ที่คาดหวัง (OR = '+fmt(or,2)+')',
-            '<span class="f-sym">p1</span> = สัดส่วนการสัมผัสปัจจัยเสี่ยงในกลุ่มผู้ป่วยที่คำนวณได้ (p1 = '+fmt(p1,4)+')',
-            '<span class="f-sym">p̄</span> = สัดส่วนเฉลี่ยของทั้งสองกลุ่ม (p̄ = (p1+p0)/2 = '+fmt(pbar,4)+')'
+            '<span class="f-sym">n₀</span> = '+L('ขนาดกลุ่มตัวอย่างต่อกลุ่ม','the sample size per group'),
+            '<span class="f-sym">Z</span> = '+L('ค่ามาตรฐานปกติ ณ ระดับความเชื่อมั่น','the standard normal value at a confidence level of')+' '+fmt(common.confPct,0)+'% (Z = '+fmt(Za,3)+')',
+            '<span class="f-sym">Z<sub>β</sub></span> = '+L('ค่ามาตรฐานปกติ ณ อำนาจการทดสอบ','the standard normal value at a statistical power of')+' '+fmt(common.powPct,0)+'% (Z<sub>β</sub> = '+fmt(Zb,3)+')',
+            '<span class="f-sym">p0</span> = '+L('สัดส่วนการสัมผัสปัจจัยเสี่ยงในกลุ่มควบคุม','the exposure proportion among controls')+' (p0 = '+fmt(p0,2)+')',
+            '<span class="f-sym">OR</span> = '+L('ค่า Odds Ratio ที่คาดหวัง','the expected Odds Ratio')+' (OR = '+fmt(or,2)+')',
+            '<span class="f-sym">p1</span> = '+L('สัดส่วนการสัมผัสปัจจัยเสี่ยงในกลุ่มผู้ป่วยที่คำนวณได้','the calculated exposure proportion among cases')+' (p1 = '+fmt(p1,4)+')',
+            '<span class="f-sym">p̄</span> = '+L('สัดส่วนเฉลี่ยของทั้งสองกลุ่ม','the average proportion of both groups')+' (p̄ = (p1+p0)/2 = '+fmt(pbar,4)+')'
           ])+
-          '<div class="f-line f-sub">แทนค่า: n₀ = ['+fmt(Za,3)+'×√(2×'+fmt(pbar,4)+'(1−'+fmt(pbar,4)+')) + '+fmt(Zb,3)+'×√('+fmt(p1,3)+'(1−'+fmt(p1,3)+')+'+fmt(p0,3)+'(1−'+fmt(p0,3)+'))]² / ('+fmt(p1,3)+'−'+fmt(p0,3)+')²</div>'+
-          '<div class="f-line f-sub">n₀ = '+fmt(n0,2)+' ต่อกลุ่ม</div>'+
-          concludeLine('ดังนั้น ขนาดกลุ่มตัวอย่างที่เหมาะสมสำหรับการวิจัยครั้งนี้ เท่ากับกลุ่มละ '+fmtInt(adj.nFinal)+' ราย รวมทั้งสิ้น '+fmtInt(ceilOrDash(adj.nFinal)*2)+' ราย');
-        return {kind:'twoGroup', n0:n0, adj:adj, breakdown:breakdown, extraInfo:'สัดส่วนการสัมผัสปัจจัยเสี่ยงในกลุ่มผู้ป่วยที่คำนวณได้ (p1) = '+fmt(p1*100,1)+'%'};
+          '<div class="f-line f-sub">'+L('แทนค่า','Substituting')+': n₀ = ['+fmt(Za,3)+'×√(2×'+fmt(pbar,4)+'(1−'+fmt(pbar,4)+')) + '+fmt(Zb,3)+'×√('+fmt(p1,3)+'(1−'+fmt(p1,3)+')+'+fmt(p0,3)+'(1−'+fmt(p0,3)+'))]² / ('+fmt(p1,3)+'−'+fmt(p0,3)+')²</div>'+
+          '<div class="f-line f-sub">n₀ = '+fmt(n0,2)+' '+L('ต่อกลุ่ม','per group')+'</div>'+
+          concludeLine(L('ดังนั้น ขนาดกลุ่มตัวอย่างที่เหมาะสมสำหรับการวิจัยครั้งนี้ เท่ากับกลุ่มละ '+fmtInt(adj.nFinal)+' ราย รวมทั้งสิ้น '+fmtInt(ceilOrDash(adj.nFinal)*2)+' ราย','Therefore, the appropriate sample size for this study is '+fmtInt(adj.nFinal)+' participants per group, for a total of '+fmtInt(ceilOrDash(adj.nFinal)*2)+' participants.'));
+        return {kind:'twoGroup', n0:n0, adj:adj, breakdown:breakdown, extraInfo:L('สัดส่วนการสัมผัสปัจจัยเสี่ยงในกลุ่มผู้ป่วยที่คำนวณได้ (p1) = ','Calculated exposure proportion among cases (p1) = ')+fmt(p1*100,1)+'%'};
       }
     },
     {
       id:'cohort', group:'epi',
       title:'Cohort Study', titleEn:'Cohort Study (Relative Risk)',
-      formulaName:'สูตรดัดแปลงจาก Fleiss', citation:'Fleiss, Levin, & Paik (2003)',
+      formulaName:'สูตรดัดแปลงจาก Fleiss', formulaNameEn:'Modified Fleiss Formula', citation:'Fleiss, Levin, & Paik (2003)',
       desc:'ใช้ในการศึกษาแบบ Cohort เพื่อเปรียบเทียบอุบัติการณ์ของโรคหรือผลลัพธ์ระหว่างกลุ่มที่สัมผัสและไม่สัมผัสปัจจัยเสี่ยง โดยอิงค่า Relative Risk ที่คาดหวัง',
+      descEn:'Used in cohort studies to compare disease/outcome incidence between exposed and unexposed groups, based on an expected Relative Risk.',
       needsPower:true, kind:'twoGroup',
       fields:[
         {id:'p0', label:'อุบัติการณ์ในกลุ่มไม่สัมผัสปัจจัยเสี่ยง', sub:'Incidence in unexposed (p0)', type:'percent', def:10, min:0.1, max:99.9, step:0.1},
         {id:'rr', label:'Relative Risk ที่คาดหวัง', sub:'Expected RR', type:'number', def:2, min:0.01, max:1000, step:0.01,
-          hint:'ค่า RR ที่ต้องการมีอำนาจตรวจพบ ต้องไม่เท่ากับ 1'}
+          hint:'ค่า RR ที่ต้องการมีอำนาจตรวจพบ ต้องไม่เท่ากับ 1', hintEn:'The RR you want to be able to detect; must not equal 1.'}
       ],
       compute:function(fv, common){
         var p0=fv.p0/100, rr=fv.rr;
-        if(!(p0>0&&p0<1)||!(rr>0)) return {kind:'twoGroup', error:'กรุณากรอกค่า p0 ระหว่าง 0–100% และ RR มากกว่า 0'};
-        if(Math.abs(rr-1)<1e-6) return {kind:'twoGroup', error:'ค่า RR ต้องไม่เท่ากับ 1 (RR=1 หมายถึงไม่มีความสัมพันธ์ จึงไม่สามารถคำนวณขนาดตัวอย่างได้)'};
+        if(!(p0>0&&p0<1)||!(rr>0)) return {kind:'twoGroup', error:L('กรุณากรอกค่า p0 ระหว่าง 0–100% และ RR มากกว่า 0','Please enter p0 between 0–100% and RR greater than 0.')};
+        if(Math.abs(rr-1)<1e-6) return {kind:'twoGroup', error:L('ค่า RR ต้องไม่เท่ากับ 1 (RR=1 หมายถึงไม่มีความสัมพันธ์ จึงไม่สามารถคำนวณขนาดตัวอย่างได้)','RR must not equal 1 (RR=1 means no association, so a sample size cannot be calculated).')};
         var p1=p0*rr;
-        if(!(p1>0&&p1<1)) return {kind:'twoGroup', error:'ค่าอุบัติการณ์ในกลุ่มสัมผัสปัจจัยที่คำนวณได้เกินช่วง 0–100% กรุณาปรับค่า p0 หรือ RR ให้เหมาะสม'};
+        if(!(p1>0&&p1<1)) return {kind:'twoGroup', error:L('ค่าอุบัติการณ์ในกลุ่มสัมผัสปัจจัยที่คำนวณได้เกินช่วง 0–100% กรุณาปรับค่า p0 หรือ RR ให้เหมาะสม','The calculated incidence in the exposed group is out of the 0–100% range. Please adjust p0 or RR.')};
         var pbar=(p1+p0)/2;
         var Za=zTwo(common.confPct), Zb=zPow(common.powPct);
         var num = Za*Math.sqrt(2*pbar*(1-pbar)) + Zb*Math.sqrt(p1*(1-p1)+p0*(1-p0));
         var n0 = (num*num)/((p1-p0)*(p1-p0));
         var adj=adjustPop(n0, common);
         var breakdown =
-          '<div class="f-line f-sub">คำนวณอุบัติการณ์ในกลุ่มสัมผัสปัจจัยเสี่ยงก่อน: p1 = p0×RR = '+fmt(p0,3)+'×'+fmt(rr,2)+' = '+fmt(p1,4)+'</div>'+
+          '<div class="f-line f-sub">'+L('คำนวณอุบัติการณ์ในกลุ่มสัมผัสปัจจัยเสี่ยงก่อน','First, calculate the incidence in the exposed group')+': p1 = p0×RR = '+fmt(p0,3)+'×'+fmt(rr,2)+' = '+fmt(p1,4)+'</div>'+
           '<div class="f-line"><span class="f-formula">n₀ = [Z·√(2p̄(1−p̄)) + Z<sub>β</sub>·√(p1(1−p1)+p0(1−p0))]² / (p1−p0)²</span></div>'+
           defBlock([
-            '<span class="f-sym">n₀</span> = ขนาดกลุ่มตัวอย่างต่อกลุ่ม',
-            '<span class="f-sym">Z</span> = ค่ามาตรฐานปกติ ณ ระดับความเชื่อมั่น '+fmt(common.confPct,0)+'% (Z = '+fmt(Za,3)+')',
-            '<span class="f-sym">Z<sub>β</sub></span> = ค่ามาตรฐานปกติ ณ อำนาจการทดสอบ '+fmt(common.powPct,0)+'% (Z<sub>β</sub> = '+fmt(Zb,3)+')',
-            '<span class="f-sym">p0</span> = อุบัติการณ์ในกลุ่มไม่สัมผัสปัจจัยเสี่ยง (p0 = '+fmt(p0,2)+')',
-            '<span class="f-sym">RR</span> = ค่า Relative Risk ที่คาดหวัง (RR = '+fmt(rr,2)+')',
-            '<span class="f-sym">p1</span> = อุบัติการณ์ในกลุ่มสัมผัสปัจจัยเสี่ยงที่คำนวณได้ (p1 = '+fmt(p1,4)+')',
-            '<span class="f-sym">p̄</span> = อุบัติการณ์เฉลี่ยของทั้งสองกลุ่ม (p̄ = (p1+p0)/2 = '+fmt(pbar,4)+')'
+            '<span class="f-sym">n₀</span> = '+L('ขนาดกลุ่มตัวอย่างต่อกลุ่ม','the sample size per group'),
+            '<span class="f-sym">Z</span> = '+L('ค่ามาตรฐานปกติ ณ ระดับความเชื่อมั่น','the standard normal value at a confidence level of')+' '+fmt(common.confPct,0)+'% (Z = '+fmt(Za,3)+')',
+            '<span class="f-sym">Z<sub>β</sub></span> = '+L('ค่ามาตรฐานปกติ ณ อำนาจการทดสอบ','the standard normal value at a statistical power of')+' '+fmt(common.powPct,0)+'% (Z<sub>β</sub> = '+fmt(Zb,3)+')',
+            '<span class="f-sym">p0</span> = '+L('อุบัติการณ์ในกลุ่มไม่สัมผัสปัจจัยเสี่ยง','the incidence in the unexposed group')+' (p0 = '+fmt(p0,2)+')',
+            '<span class="f-sym">RR</span> = '+L('ค่า Relative Risk ที่คาดหวัง','the expected Relative Risk')+' (RR = '+fmt(rr,2)+')',
+            '<span class="f-sym">p1</span> = '+L('อุบัติการณ์ในกลุ่มสัมผัสปัจจัยเสี่ยงที่คำนวณได้','the calculated incidence in the exposed group')+' (p1 = '+fmt(p1,4)+')',
+            '<span class="f-sym">p̄</span> = '+L('อุบัติการณ์เฉลี่ยของทั้งสองกลุ่ม','the average incidence of both groups')+' (p̄ = (p1+p0)/2 = '+fmt(pbar,4)+')'
           ])+
-          '<div class="f-line f-sub">แทนค่า: n₀ = ['+fmt(Za,3)+'×√(2×'+fmt(pbar,4)+'(1−'+fmt(pbar,4)+')) + '+fmt(Zb,3)+'×√('+fmt(p1,3)+'(1−'+fmt(p1,3)+')+'+fmt(p0,3)+'(1−'+fmt(p0,3)+'))]² / ('+fmt(p1,3)+'−'+fmt(p0,3)+')²</div>'+
-          '<div class="f-line f-sub">n₀ = '+fmt(n0,2)+' ต่อกลุ่ม</div>'+
-          concludeLine('ดังนั้น ขนาดกลุ่มตัวอย่างที่เหมาะสมสำหรับการวิจัยครั้งนี้ เท่ากับกลุ่มละ '+fmtInt(adj.nFinal)+' ราย รวมทั้งสิ้น '+fmtInt(ceilOrDash(adj.nFinal)*2)+' ราย');
-        return {kind:'twoGroup', n0:n0, adj:adj, breakdown:breakdown, extraInfo:'อุบัติการณ์ในกลุ่มสัมผัสปัจจัยเสี่ยงที่คำนวณได้ (p1) = '+fmt(p1*100,1)+'%'};
+          '<div class="f-line f-sub">'+L('แทนค่า','Substituting')+': n₀ = ['+fmt(Za,3)+'×√(2×'+fmt(pbar,4)+'(1−'+fmt(pbar,4)+')) + '+fmt(Zb,3)+'×√('+fmt(p1,3)+'(1−'+fmt(p1,3)+')+'+fmt(p0,3)+'(1−'+fmt(p0,3)+'))]² / ('+fmt(p1,3)+'−'+fmt(p0,3)+')²</div>'+
+          '<div class="f-line f-sub">n₀ = '+fmt(n0,2)+' '+L('ต่อกลุ่ม','per group')+'</div>'+
+          concludeLine(L('ดังนั้น ขนาดกลุ่มตัวอย่างที่เหมาะสมสำหรับการวิจัยครั้งนี้ เท่ากับกลุ่มละ '+fmtInt(adj.nFinal)+' ราย รวมทั้งสิ้น '+fmtInt(ceilOrDash(adj.nFinal)*2)+' ราย','Therefore, the appropriate sample size for this study is '+fmtInt(adj.nFinal)+' participants per group, for a total of '+fmtInt(ceilOrDash(adj.nFinal)*2)+' participants.'));
+        return {kind:'twoGroup', n0:n0, adj:adj, breakdown:breakdown, extraInfo:L('อุบัติการณ์ในกลุ่มสัมผัสปัจจัยเสี่ยงที่คำนวณได้ (p1) = ','Calculated incidence in the exposed group (p1) = ')+fmt(p1*100,1)+'%'};
       }
     },
     {
       id:'corr', group:'other',
       title:'สัมประสิทธิ์สหสัมพันธ์', titleEn:'Correlation Coefficient',
-      formulaName:"Fisher's Z Transformation", citation:'Cohen, J. (1988)',
+      formulaName:"Fisher's Z Transformation", formulaNameEn:"Fisher's Z Transformation", citation:'Cohen, J. (1988)',
       desc:'ใช้เมื่อต้องการทดสอบสมมติฐานว่าสัมประสิทธิ์สหสัมพันธ์ (r) ระหว่างตัวแปรสองตัวแตกต่างจากศูนย์อย่างมีนัยสำคัญ',
+      descEn:'Used to test the hypothesis that a correlation coefficient (r) between two variables differs significantly from zero.',
       needsPower:true, kind:'single',
       fields:[
         {id:'r', label:'สัมประสิทธิ์สหสัมพันธ์ที่คาดหวัง', sub:'Expected correlation (r)', type:'number', def:0.3, min:0.01, max:0.99, step:0.01,
-          hint:'ค่าสัมบูรณ์ของ r ที่คาดว่าจะพบ ระหว่าง 0 ถึง 1 (ไม่รวม 0 และ 1)'}
+          hint:'ค่าสัมบูรณ์ของ r ที่คาดว่าจะพบ ระหว่าง 0 ถึง 1 (ไม่รวม 0 และ 1)',
+          hintEn:'The absolute expected value of r, between 0 and 1 (exclusive).'}
       ],
       compute:function(fv, common){
         var r=Math.abs(fv.r);
-        if(!(r>0&&r<1)) return {kind:'single', error:'กรุณากรอกค่า r ระหว่าง 0 ถึง 1 (ไม่รวม 0 และ 1)'};
+        if(!(r>0&&r<1)) return {kind:'single', error:L('กรุณากรอกค่า r ระหว่าง 0 ถึง 1 (ไม่รวม 0 และ 1)','Please enter r between 0 and 1 (exclusive).')};
         var C=0.5*Math.log((1+r)/(1-r));
         var Za=zTwo(common.confPct), Zb=zPow(common.powPct);
         var n0 = Math.pow((Za+Zb)/C,2) + 3;
         var adj=adjustPop(n0, common);
         var breakdown =
-          '<div class="f-line f-sub">แปลงค่า r ด้วย Fisher\'s Z ก่อน: C = ½·ln[(1+r)/(1−r)] = ½·ln[(1+'+fmt(r,2)+')/(1−'+fmt(r,2)+')] = '+fmt(C,4)+'</div>'+
+          '<div class="f-line f-sub">'+L('แปลงค่า r ด้วย Fisher\'s Z ก่อน','First, transform r using Fisher\'s Z')+': C = ½·ln[(1+r)/(1−r)] = ½·ln[(1+'+fmt(r,2)+')/(1−'+fmt(r,2)+')] = '+fmt(C,4)+'</div>'+
           '<div class="f-line"><span class="f-formula">n₀ = [(Z + Z<sub>β</sub>) / C]² + 3</span></div>'+
           defBlock([
-            '<span class="f-sym">n₀</span> = ขนาดกลุ่มตัวอย่าง',
-            '<span class="f-sym">Z</span> = ค่ามาตรฐานปกติ ณ ระดับความเชื่อมั่น '+fmt(common.confPct,0)+'% (Z = '+fmt(Za,3)+')',
-            '<span class="f-sym">Z<sub>β</sub></span> = ค่ามาตรฐานปกติ ณ อำนาจการทดสอบ '+fmt(common.powPct,0)+'% (Z<sub>β</sub> = '+fmt(Zb,3)+')',
-            '<span class="f-sym">r</span> = สัมประสิทธิ์สหสัมพันธ์ที่คาดว่าจะพบ (r = '+fmt(r,2)+')',
-            '<span class="f-sym">C</span> = ค่าที่แปลงจาก r ด้วยวิธี Fisher\'s Z (C = '+fmt(C,4)+')'
+            '<span class="f-sym">n₀</span> = '+L('ขนาดกลุ่มตัวอย่าง','the sample size'),
+            '<span class="f-sym">Z</span> = '+L('ค่ามาตรฐานปกติ ณ ระดับความเชื่อมั่น','the standard normal value at a confidence level of')+' '+fmt(common.confPct,0)+'% (Z = '+fmt(Za,3)+')',
+            '<span class="f-sym">Z<sub>β</sub></span> = '+L('ค่ามาตรฐานปกติ ณ อำนาจการทดสอบ','the standard normal value at a statistical power of')+' '+fmt(common.powPct,0)+'% (Z<sub>β</sub> = '+fmt(Zb,3)+')',
+            '<span class="f-sym">r</span> = '+L('สัมประสิทธิ์สหสัมพันธ์ที่คาดว่าจะพบ','the expected correlation coefficient')+' (r = '+fmt(r,2)+')',
+            '<span class="f-sym">C</span> = '+L('ค่าที่แปลงจาก r ด้วยวิธี Fisher\'s Z','the value transformed from r via Fisher\'s Z')+' (C = '+fmt(C,4)+')'
           ])+
-          '<div class="f-line f-sub">แทนค่า: n₀ = [('+fmt(Za,3)+' + '+fmt(Zb,3)+') / '+fmt(C,4)+']² + 3</div>'+
+          '<div class="f-line f-sub">'+L('แทนค่า','Substituting')+': n₀ = [('+fmt(Za,3)+' + '+fmt(Zb,3)+') / '+fmt(C,4)+']² + 3</div>'+
           '<div class="f-line f-sub">n₀ = '+fmt(n0,2)+'</div>'+
-          concludeLine('ดังนั้น ขนาดกลุ่มตัวอย่างที่เหมาะสมสำหรับการวิจัยครั้งนี้ เท่ากับ '+fmtInt(adj.nFinal)+' ราย');
+          concludeLine(L('ดังนั้น ขนาดกลุ่มตัวอย่างที่เหมาะสมสำหรับการวิจัยครั้งนี้ เท่ากับ '+fmtInt(adj.nFinal)+' ราย','Therefore, the appropriate sample size for this study is '+fmtInt(adj.nFinal)+' participants.'));
         return {kind:'single', n0:n0, adj:adj, breakdown:breakdown};
       }
     },
     {
       id:'diagnostic', group:'other',
       title:'ความไว/ความจำเพาะของเครื่องมือวินิจฉัย', titleEn:'Diagnostic Test Accuracy',
-      formulaName:'สูตรของ Buderer', citation:'Buderer, N. M. F. (1996)',
+      formulaName:'สูตรของ Buderer', formulaNameEn:"Buderer's Formula", citation:'Buderer, N. M. F. (1996)',
       desc:'ใช้เมื่อต้องการประเมินขนาดตัวอย่างสำหรับศึกษาความไว (Sensitivity) และความจำเพาะ (Specificity) ของเครื่องมือวินิจฉัย โดยคำนึงถึงความชุกของโรคในประชากรที่ศึกษา',
+      descEn:'Used to estimate sample size for studying the sensitivity and specificity of a diagnostic test, accounting for the disease prevalence in the study population.',
       needsPower:false, kind:'diagnostic',
       fields:[
         {id:'sn', label:'ความไวที่คาดหวัง', sub:'Expected Sensitivity', type:'percent', def:90, min:1, max:99.9, step:0.1},
@@ -687,60 +753,62 @@
       ],
       compute:function(fv, common){
         var sn=fv.sn/100, sp=fv.sp/100, prev=fv.prev/100, d=fv.d/100;
-        if(!(sn>0&&sn<1)||!(sp>0&&sp<1)||!(prev>0&&prev<1)||!(d>0)) return {kind:'diagnostic', error:'กรุณากรอกค่าความไว ความจำเพาะ ความชุก ระหว่าง 0–100% และค่า d มากกว่า 0'};
+        if(!(sn>0&&sn<1)||!(sp>0&&sp<1)||!(prev>0&&prev<1)||!(d>0)) return {kind:'diagnostic', error:L('กรุณากรอกค่าความไว ความจำเพาะ ความชุก ระหว่าง 0–100% และค่า d มากกว่า 0','Please enter sensitivity, specificity, and prevalence between 0–100%, and d greater than 0.')};
         var Za=zTwo(common.confPct);
         var nDis = Za*Za*sn*(1-sn)/(d*d);
         var nNon = Za*Za*sp*(1-sp)/(d*d);
         var NtotSn = nDis/prev;
         var NtotSp = nNon/(1-prev);
         var Ntotal0 = Math.max(NtotSn, NtotSp);
-        var binding = NtotSn>=NtotSp ? 'ความไว (Sensitivity)' : 'ความจำเพาะ (Specificity)';
+        var binding = NtotSn>=NtotSp ? L('ความไว (Sensitivity)','Sensitivity') : L('ความจำเพาะ (Specificity)','Specificity');
         var adj=adjustPop(Ntotal0, common);
         var breakdown =
           '<div class="f-line"><span class="f-formula">n<sub>Sn</sub> = Z²·Sn(1−Sn)/d²   ,   n<sub>Sp</sub> = Z²·Sp(1−Sp)/d²</span></div>'+
           defBlock([
-            '<span class="f-sym">Z</span> = ค่ามาตรฐานปกติ ณ ระดับความเชื่อมั่น '+fmt(common.confPct,0)+'% (Z = '+fmt(Za,3)+')',
-            '<span class="f-sym">Sn</span> = ความไวที่คาดหวัง (Sn = '+fmt(sn,2)+')',
-            '<span class="f-sym">Sp</span> = ความจำเพาะที่คาดหวัง (Sp = '+fmt(sp,2)+')',
-            '<span class="f-sym">d</span> = ค่าความคลาดเคลื่อนที่ยอมรับได้ (d = '+fmt(d,2)+')',
-            '<span class="f-sym">ความชุก</span> = ความชุกของโรคในประชากรที่ศึกษา (= '+fmt(prev,2)+')'
+            '<span class="f-sym">Z</span> = '+L('ค่ามาตรฐานปกติ ณ ระดับความเชื่อมั่น','the standard normal value at a confidence level of')+' '+fmt(common.confPct,0)+'% (Z = '+fmt(Za,3)+')',
+            '<span class="f-sym">Sn</span> = '+L('ความไวที่คาดหวัง','the expected sensitivity')+' (Sn = '+fmt(sn,2)+')',
+            '<span class="f-sym">Sp</span> = '+L('ความจำเพาะที่คาดหวัง','the expected specificity')+' (Sp = '+fmt(sp,2)+')',
+            '<span class="f-sym">d</span> = '+L('ค่าความคลาดเคลื่อนที่ยอมรับได้','the acceptable margin of error')+' (d = '+fmt(d,2)+')',
+            '<span class="f-sym">'+L('ความชุก','Prevalence')+'</span> = '+L('ความชุกของโรคในประชากรที่ศึกษา','the disease prevalence in the study population')+' (= '+fmt(prev,2)+')'
           ])+
-          '<div class="f-line f-sub">แทนค่า: n<sub>Sn</sub> = ('+fmt(Za,3)+')²×'+fmt(sn,3)+'(1−'+fmt(sn,3)+')/('+fmt(d,3)+')² = '+fmt(nDis,2)+' ราย (จำนวนกลุ่มเป็นโรคขั้นต่ำ)</div>'+
-          '<div class="f-line f-sub">n<sub>Sp</sub> = ('+fmt(Za,3)+')²×'+fmt(sp,3)+'(1−'+fmt(sp,3)+')/('+fmt(d,3)+')² = '+fmt(nNon,2)+' ราย (จำนวนกลุ่มไม่เป็นโรคขั้นต่ำ)</div>'+
-          '<div class="f-line f-sub">ขนาดตัวอย่างรวมตามความไว = n<sub>Sn</sub> / ความชุก = '+fmt(NtotSn,2)+'</div>'+
-          '<div class="f-line f-sub">ขนาดตัวอย่างรวมตามความจำเพาะ = n<sub>Sp</sub> / (1−ความชุก) = '+fmt(NtotSp,2)+'</div>'+
-          '<div class="f-line f-sub">N = max(ขนาดตัวอย่างทั้งสองเงื่อนไข) — เงื่อนไขที่กำหนดขนาดตัวอย่างคือ '+binding+'</div>'+
-          concludeLine('ดังนั้น ขนาดกลุ่มตัวอย่างที่ต้องเก็บรวบรวมทั้งสิ้นสำหรับการวิจัยครั้งนี้ เท่ากับ '+fmtInt(adj.nFinal)+' ราย (แบ่งเป็นกลุ่มเป็นโรคอย่างน้อย '+fmtInt(nDis)+' ราย และกลุ่มไม่เป็นโรคอย่างน้อย '+fmtInt(nNon)+' ราย)');
+          '<div class="f-line f-sub">'+L('แทนค่า','Substituting')+': n<sub>Sn</sub> = ('+fmt(Za,3)+')²×'+fmt(sn,3)+'(1−'+fmt(sn,3)+')/('+fmt(d,3)+')² = '+fmt(nDis,2)+' '+L('ราย (จำนวนกลุ่มเป็นโรคขั้นต่ำ)','participants (minimum diseased group)')+'</div>'+
+          '<div class="f-line f-sub">n<sub>Sp</sub> = ('+fmt(Za,3)+')²×'+fmt(sp,3)+'(1−'+fmt(sp,3)+')/('+fmt(d,3)+')² = '+fmt(nNon,2)+' '+L('ราย (จำนวนกลุ่มไม่เป็นโรคขั้นต่ำ)','participants (minimum non-diseased group)')+'</div>'+
+          '<div class="f-line f-sub">'+L('ขนาดตัวอย่างรวมตามความไว','Total sample size based on sensitivity')+' = n<sub>Sn</sub> / '+L('ความชุก','prevalence')+' = '+fmt(NtotSn,2)+'</div>'+
+          '<div class="f-line f-sub">'+L('ขนาดตัวอย่างรวมตามความจำเพาะ','Total sample size based on specificity')+' = n<sub>Sp</sub> / (1−'+L('ความชุก','prevalence')+') = '+fmt(NtotSp,2)+'</div>'+
+          '<div class="f-line f-sub">N = max('+L('ขนาดตัวอย่างทั้งสองเงื่อนไข','both conditions')+') — '+L('เงื่อนไขที่กำหนดขนาดตัวอย่างคือ','the binding condition is')+' '+binding+'</div>'+
+          concludeLine(L('ดังนั้น ขนาดกลุ่มตัวอย่างที่ต้องเก็บรวบรวมทั้งสิ้นสำหรับการวิจัยครั้งนี้ เท่ากับ '+fmtInt(adj.nFinal)+' ราย (แบ่งเป็นกลุ่มเป็นโรคอย่างน้อย '+fmtInt(nDis)+' ราย และกลุ่มไม่เป็นโรคอย่างน้อย '+fmtInt(nNon)+' ราย)','Therefore, the total sample size to be collected for this study is '+fmtInt(adj.nFinal)+' participants (at least '+fmtInt(nDis)+' diseased and at least '+fmtInt(nNon)+' non-diseased).'));
         return {kind:'diagnostic', n0:Ntotal0, nDis:nDis, nNon:nNon, adj:adj, breakdown:breakdown};
       }
     },
     {
       id:'regression', group:'other',
       title:'ขนาดตัวอย่างสำหรับการวิเคราะห์ถดถอย', titleEn:'Multiple Regression — Rule of Thumb',
-      formulaName:'แนวทางของ Green (1991)', citation:'Green, S. B. (1991)',
+      formulaName:'แนวทางของ Green (1991)', formulaNameEn:"Green's (1991) Rule of Thumb", citation:'Green, S. B. (1991)',
       desc:'แนวทางโดยประมาณ (ไม่ใช่การคำนวณอำนาจการทดสอบที่แม่นยำ) สำหรับประมาณขนาดตัวอย่างขั้นต่ำในการวิเคราะห์การถดถอยพหุคูณ (Multiple Regression) โดยพิจารณาจากจำนวนตัวแปรทำนาย (k) เหมาะสำหรับวางแผนเบื้องต้นเมื่อยังไม่มีค่า effect size ที่แน่ชัด หากต้องการความแม่นยำสูงควรใช้โปรแกรมเฉพาะทาง เช่น G*Power ร่วมด้วย',
+      descEn:'An approximate guideline (not a precise power calculation) for estimating the minimum sample size for multiple regression analysis, based on the number of predictors (k). Suitable for initial planning when the effect size is not yet known. For higher precision, use specialized software such as G*Power.',
       needsPower:false, kind:'regression', skipPopulationBlock:true, skipConfidenceBlock:true,
       fields:[
         {id:'k', label:'จำนวนตัวแปรทำนาย (ตัวแปรอิสระ)', sub:'Number of predictors (k)', type:'number', def:5, min:1, max:100, step:1,
-          hint:'จำนวนตัวแปรอิสระทั้งหมดที่ใส่ในสมการถดถอย'}
+          hint:'จำนวนตัวแปรอิสระทั้งหมดที่ใส่ในสมการถดถอย',
+          hintEn:'The total number of independent variables included in the regression equation.'}
       ],
       compute:function(fv, common){
         var k=fv.k;
-        if(!(k>=1)) return {kind:'regression', error:'กรุณากรอกจำนวนตัวแปรทำนาย (k) อย่างน้อย 1 ตัว'};
+        if(!(k>=1)) return {kind:'regression', error:L('กรุณากรอกจำนวนตัวแปรทำนาย (k) อย่างน้อย 1 ตัว','Please enter at least 1 predictor (k).')};
         var nOverall = 50 + 8*k;
         var nIndividual = 104 + k;
         var nRecommend = Math.max(nOverall, nIndividual);
         var adj = adjustPop(nRecommend, common);
         var breakdown =
-          '<div class="f-line"><span class="f-formula">n = 50 + 8k   (ทดสอบ R² โดยรวม)   ,   n = 104 + k   (ทดสอบสัมประสิทธิ์รายตัวแปร)</span></div>'+
+          '<div class="f-line"><span class="f-formula">n = 50 + 8k   ('+L('ทดสอบ R² โดยรวม','testing overall R²')+')   ,   n = 104 + k   ('+L('ทดสอบสัมประสิทธิ์รายตัวแปร','testing individual predictors')+')</span></div>'+
           defBlock([
-            '<span class="f-sym">n</span> = ขนาดกลุ่มตัวอย่างขั้นต่ำที่แนะนำ',
-            '<span class="f-sym">k</span> = จำนวนตัวแปรทำนาย (ตัวแปรอิสระ) ในสมการถดถอย (k = '+fmtInt(k)+')'
+            '<span class="f-sym">n</span> = '+L('ขนาดกลุ่มตัวอย่างขั้นต่ำที่แนะนำ','the recommended minimum sample size'),
+            '<span class="f-sym">k</span> = '+L('จำนวนตัวแปรทำนาย (ตัวแปรอิสระ) ในสมการถดถอย','the number of predictors in the regression equation')+' (k = '+fmtInt(k)+')'
           ])+
-          '<div class="f-line f-sub">แทนค่า: n (ทดสอบ R² โดยรวม) = 50 + 8×'+fmtInt(k)+' = '+fmtInt(nOverall)+' ราย</div>'+
-          '<div class="f-line f-sub">n (ทดสอบสัมประสิทธิ์รายตัวแปร) = 104 + '+fmtInt(k)+' = '+fmtInt(nIndividual)+' ราย</div>'+
-          '<div class="f-line f-sub">ใช้ค่าที่มากกว่าเพื่อความครอบคลุมทั้งสองวัตถุประสงค์</div>'+
-          concludeLine('ดังนั้น ขนาดกลุ่มตัวอย่างขั้นต่ำที่แนะนำสำหรับการวิเคราะห์การถดถอยครั้งนี้ เท่ากับ '+fmtInt(adj.nFinal)+' ราย (แนวทางโดยประมาณตาม Green, 1991)');
+          '<div class="f-line f-sub">'+L('แทนค่า','Substituting')+': n ('+L('ทดสอบ R² โดยรวม','overall R²')+') = 50 + 8×'+fmtInt(k)+' = '+fmtInt(nOverall)+' '+L('ราย','participants')+'</div>'+
+          '<div class="f-line f-sub">n ('+L('ทดสอบสัมประสิทธิ์รายตัวแปร','individual predictors')+') = 104 + '+fmtInt(k)+' = '+fmtInt(nIndividual)+' '+L('ราย','participants')+'</div>'+
+          '<div class="f-line f-sub">'+L('ใช้ค่าที่มากกว่าเพื่อความครอบคลุมทั้งสองวัตถุประสงค์','Use the larger value to cover both objectives.')+'</div>'+
+          concludeLine(L('ดังนั้น ขนาดกลุ่มตัวอย่างขั้นต่ำที่แนะนำสำหรับการวิเคราะห์การถดถอยครั้งนี้ เท่ากับ '+fmtInt(adj.nFinal)+' ราย (แนวทางโดยประมาณตาม Green, 1991)','Therefore, the recommended minimum sample size for this regression analysis is '+fmtInt(adj.nFinal)+' participants (approximate guideline per Green, 1991).'));
         return {kind:'regression', nOverall:nOverall, nIndividual:nIndividual, n0:nRecommend, adj:adj, breakdown:breakdown};
       }
     }
@@ -751,42 +819,48 @@
 
   /* ===================== SIDEBAR RENDER ===================== */
   var sidebar = document.getElementById('sidebar');
-  var groupsHTML = '';
-  GROUP_ORDER.forEach(function(g){
-    var items = DESIGNS.filter(function(d){ return d.group===g; });
-    if(!items.length) return;
-    groupsHTML += '<div class="sidebar-group">';
-    groupsHTML += '<div class="sidebar-group-label">'+GROUP_LABELS[g].th+'</div>';
-    items.forEach(function(d){
-      groupsHTML += '<button type="button" class="nav-btn" data-id="'+d.id+'">'+
-        '<span class="nb-th">'+d.title+'</span><span class="nb-en">'+d.titleEn+'</span></button>';
-    });
-    groupsHTML += '</div>';
-  });
-  sidebar.innerHTML =
-    '<div class="sidebar-search"><input type="search" id="sidebarSearch" placeholder="🔍 ค้นหารูปแบบการศึกษา..." aria-label="ค้นหารูปแบบการศึกษา"></div>'+
-    '<div id="sidebarGroups">'+groupsHTML+'</div>';
-
-  document.getElementById('sidebarSearch').addEventListener('input', function(e){
-    var q = e.target.value.trim().toLowerCase();
-    var groups = document.querySelectorAll('#sidebarGroups .sidebar-group');
-    Array.prototype.forEach.call(groups, function(g){
-      var anyVisible=false;
-      var btns = g.querySelectorAll('.nav-btn');
-      Array.prototype.forEach.call(btns, function(b){
-        var txt=(b.textContent||'').toLowerCase();
-        var match = q==='' || txt.indexOf(q)>-1;
-        b.style.display = match?'':'none';
-        if(match) anyVisible=true;
+  function buildSidebarHTML(){
+    var groupsHTML = '';
+    GROUP_ORDER.forEach(function(g){
+      var items = DESIGNS.filter(function(d){ return d.group===g; });
+      if(!items.length) return;
+      groupsHTML += '<div class="sidebar-group">';
+      groupsHTML += '<div class="sidebar-group-label">'+L(GROUP_LABELS[g].th, GROUP_LABELS[g].en)+'</div>';
+      items.forEach(function(d){
+        groupsHTML += '<button type="button" class="nav-btn" data-id="'+d.id+'">'+
+          '<span class="nb-th">'+L(d.title, d.titleEn)+'</span><span class="nb-en">'+L(d.titleEn, d.title)+'</span></button>';
       });
-      g.style.display = anyVisible?'':'none';
+      groupsHTML += '</div>';
     });
-  });
+    sidebar.innerHTML =
+      '<div class="sidebar-search"><input type="search" id="sidebarSearch" placeholder="'+T('searchPlaceholder')+'" aria-label="'+T('searchPlaceholder')+'"></div>'+
+      '<div id="sidebarGroups">'+groupsHTML+'</div>';
+    document.getElementById('sidebarSearch').addEventListener('input', function(e){
+      var q = e.target.value.trim().toLowerCase();
+      var groups = document.querySelectorAll('#sidebarGroups .sidebar-group');
+      Array.prototype.forEach.call(groups, function(g){
+        var anyVisible=false;
+        var btns = g.querySelectorAll('.nav-btn');
+        Array.prototype.forEach.call(btns, function(b){
+          var txt=(b.textContent||'').toLowerCase();
+          var match = q==='' || txt.indexOf(q)>-1;
+          b.style.display = match?'':'none';
+          if(match) anyVisible=true;
+        });
+        g.style.display = anyVisible?'':'none';
+      });
+    });
+    Array.prototype.forEach.call(sidebar.querySelectorAll('.nav-btn'), function(b){
+      b.classList.toggle('active', b.getAttribute('data-id')===activeId);
+    });
+  }
 
   var activeId = 'prop1';
   try {
     var saved = localStorage.getItem('samplesimple_last_design');
     if(saved && designMap[saved]) activeId = saved;
+    var savedLang = localStorage.getItem('samplesimple_lang');
+    if(savedLang==='en' || savedLang==='th') LANG = savedLang;
   } catch(e){}
 
   sidebar.addEventListener('click', function(e){
@@ -809,12 +883,15 @@
   var designHeader = document.getElementById('designHeader');
 
   function fieldHTML(f){
+    var mainLabel = LANG==='en' ? f.sub : f.label;
+    var glossLabel = LANG==='en' ? f.label : f.sub;
+    var hintText = LANG==='en' ? (f.hintEn||f.hint) : f.hint;
     var suffix = f.type==='percent' ? '%' : (f.suffix||'');
     return '<div class="field">'+
-      '<label for="f_'+f.id+'">'+f.label+'<span class="field-en">'+(f.sub||'')+'</span></label>'+
+      '<label for="f_'+f.id+'">'+mainLabel+'<span class="field-en">'+(glossLabel||'')+'</span></label>'+
       '<div class="input-wrap"><input type="number" id="f_'+f.id+'" value="'+f.def+'" min="'+f.min+'" max="'+f.max+'" step="'+f.step+'">'+
       (suffix?'<span class="input-suffix">'+suffix+'</span>':'')+'</div>'+
-      (f.hint?'<p class="field-hint">'+f.hint+'</p>':'')+
+      (hintText?'<p class="field-hint">'+hintText+'</p>':'')+
       '</div>';
   }
 
@@ -822,22 +899,22 @@
     var html = '';
     if(!design.skipConfidenceBlock){
       html += '<hr class="field-divider">';
-      html += '<div class="field-section-label">การตั้งค่าทางสถิติ</div>';
+      html += '<div class="field-section-label">'+L('การตั้งค่าทางสถิติ','Statistical settings')+'</div>';
       html += '<div class="field">'+
-        '<label for="conf_level">ระดับความเชื่อมั่น <span class="field-en">Confidence level</span></label>'+
-        '<select id="conf_level"><option value="90">90%</option><option value="95" selected>95%</option><option value="99">99%</option><option value="custom">กำหนดเอง...</option></select>'+
+        '<label for="conf_level">'+L('ระดับความเชื่อมั่น','Confidence level')+' <span class="field-en">'+L('Confidence level','ระดับความเชื่อมั่น')+'</span></label>'+
+        '<select id="conf_level"><option value="90">90%</option><option value="95" selected>95%</option><option value="99">99%</option><option value="custom">'+L('กำหนดเอง...','Custom...')+'</option></select>'+
         '</div>';
       html += '<div class="field hidden" id="confCustomWrap">'+
-        '<label for="conf_custom">ระดับความเชื่อมั่น (กำหนดเอง)</label>'+
+        '<label for="conf_custom">'+L('ระดับความเชื่อมั่น (กำหนดเอง)','Confidence level (custom)')+'</label>'+
         '<div class="input-wrap"><input type="number" id="conf_custom" value="97.5" min="50" max="99.99" step="0.1"><span class="input-suffix">%</span></div>'+
         '</div>';
       if(design.needsPower){
         html += '<div class="field">'+
-          '<label for="power_level">อำนาจการทดสอบ <span class="field-en">Statistical power (1−β)</span></label>'+
-          '<select id="power_level"><option value="80" selected>80%</option><option value="90">90%</option><option value="95">95%</option><option value="custom">กำหนดเอง...</option></select>'+
+          '<label for="power_level">'+L('อำนาจการทดสอบ','Statistical power')+' <span class="field-en">'+L('Statistical power (1−β)','อำนาจการทดสอบ (1−β)')+'</span></label>'+
+          '<select id="power_level"><option value="80" selected>80%</option><option value="90">90%</option><option value="95">95%</option><option value="custom">'+L('กำหนดเอง...','Custom...')+'</option></select>'+
           '</div>';
         html += '<div class="field hidden" id="powerCustomWrap">'+
-          '<label for="power_custom">อำนาจการทดสอบ (กำหนดเอง)</label>'+
+          '<label for="power_custom">'+L('อำนาจการทดสอบ (กำหนดเอง)','Statistical power (custom)')+'</label>'+
           '<div class="input-wrap"><input type="number" id="power_custom" value="85" min="50" max="99.9" step="0.1"><span class="input-suffix">%</span></div>'+
           '</div>';
       }
@@ -845,33 +922,33 @@
     html += '<hr class="field-divider">';
     var hasNField = design.fields.some(function(f){ return f.id==='N'; });
     if(!design.skipPopulationBlock){
-      html += '<div class="field-section-label">ขนาดประชากร</div>';
+      html += '<div class="field-section-label">'+L('ขนาดประชากร','Population size')+'</div>';
       html += '<div class="field">'+
-        '<label for="pop_type">ขนาดประชากร <span class="field-en">Population size</span></label>'+
-        '<select id="pop_type"><option value="infinite" selected>ไม่ทราบ / ประชากรขนาดใหญ่มาก (Infinite)</option><option value="finite">ทราบขนาดประชากรที่แน่นอน (Finite)</option></select>'+
+        '<label for="pop_type">'+L('ขนาดประชากร','Population size')+' <span class="field-en">'+L('Population size','ขนาดประชากร')+'</span></label>'+
+        '<select id="pop_type"><option value="infinite" selected>'+L('ไม่ทราบ / ประชากรขนาดใหญ่มาก (Infinite)','Unknown / very large population (Infinite)')+'</option><option value="finite">'+L('ทราบขนาดประชากรที่แน่นอน (Finite)','Exact population size known (Finite)')+'</option></select>'+
         '</div>';
       html += '<div class="field hidden" id="popNWrap">'+
-        '<label for="pop_N">ขนาดประชากรทั้งหมด (N)</label>'+
+        '<label for="pop_N">'+L('ขนาดประชากรทั้งหมด (N)','Total population size (N)')+'</label>'+
         '<input type="number" id="pop_N" value="1000" min="1" step="1">'+
-        '<p class="field-hint">โปรแกรมจะปรับขนาดตัวอย่างด้วยสูตรแก้ไขประชากรจำกัด (FPC): n = n₀ / (1 + (n₀−1)/N)</p>'+
+        '<p class="field-hint">'+L('โปรแกรมจะปรับขนาดตัวอย่างด้วยสูตรแก้ไขประชากรจำกัด (FPC): n = n₀ / (1 + (n₀−1)/N)','The app will adjust the sample size using the Finite Population Correction (FPC): n = n₀ / (1 + (n₀−1)/N)')+'</p>'+
         '</div>';
     } else if(hasNField){
-      html += '<div class="field-section-label">ขนาดประชากร</div>';
-      html += '<p class="field-hint" style="margin:-8px 2px 4px;">สูตรนี้ใช้ขนาดประชากร (N) ที่กรอกไว้ด้านบนโดยตรงในการคำนวณอยู่แล้ว จึงไม่ต้องเลือกประเภทประชากรซ้ำ</p>';
+      html += '<div class="field-section-label">'+L('ขนาดประชากร','Population size')+'</div>';
+      html += '<p class="field-hint" style="margin:-8px 2px 4px;">'+L('สูตรนี้ใช้ขนาดประชากร (N) ที่กรอกไว้ด้านบนโดยตรงในการคำนวณอยู่แล้ว จึงไม่ต้องเลือกประเภทประชากรซ้ำ','This formula already uses the population size (N) entered above directly, so no separate population type selection is needed.')+'</p>';
     }
     html += '<hr class="field-divider">';
-    html += '<div class="field-section-label">การปรับขนาดตัวอย่าง</div>';
+    html += '<div class="field-section-label">'+L('การปรับขนาดตัวอย่าง','Sample size adjustment')+'</div>';
     html += '<div class="field">'+
-      '<label for="nonresp">อัตราการสูญหาย/ไม่ตอบแบบสอบถามที่คาดไว้ <span class="field-en">Expected non-response</span></label>'+
+      '<label for="nonresp">'+L('อัตราการสูญหาย/ไม่ตอบแบบสอบถามที่คาดไว้','Expected non-response rate')+' <span class="field-en">'+L('Expected non-response','อัตราการสูญหายที่คาดไว้')+'</span></label>'+
       '<div class="input-wrap"><input type="number" id="nonresp" value="0" min="0" max="90" step="1"><span class="input-suffix">%</span></div>'+
-      '<p class="field-hint">ระบุหากคาดว่าจะมีผู้ปฏิเสธเข้าร่วมหรือข้อมูลไม่สมบูรณ์ โปรแกรมจะเพิ่มขนาดตัวอย่างชดเชยให้อัตโนมัติ</p>'+
+      '<p class="field-hint">'+L('ระบุหากคาดว่าจะมีผู้ปฏิเสธเข้าร่วมหรือข้อมูลไม่สมบูรณ์ โปรแกรมจะเพิ่มขนาดตัวอย่างชดเชยให้อัตโนมัติ','Enter this if you expect refusals or incomplete data; the app will automatically inflate the sample size to compensate.')+'</p>'+
       '</div>';
     html += '<div class="field">'+
-      '<label for="deff">Design Effect (DEFF) — สุ่มแบบกลุ่ม/หลายขั้นตอน <span class="field-en">Cluster / multi-stage sampling</span></label>'+
+      '<label for="deff">Design Effect (DEFF) — '+L('สุ่มแบบกลุ่ม/หลายขั้นตอน','cluster / multi-stage sampling')+' <span class="field-en">'+L('Cluster / multi-stage sampling','สุ่มแบบกลุ่ม/หลายขั้นตอน')+'</span></label>'+
       '<input type="number" id="deff" value="1" min="1" max="10" step="0.1">'+
-      '<p class="field-hint">ใช้เมื่อสุ่มตัวอย่างแบบ Cluster / Multi-stage sampling (เช่น สุ่มอำเภอแล้วสุ่มหมู่บ้าน) ค่าเริ่มต้น = 1 คือไม่มีผลจากการสุ่มแบบกลุ่ม งานสำรวจสาธารณสุขทั่วไปมักใช้ 1.5–2.0</p>'+
+      '<p class="field-hint">'+L('ใช้เมื่อสุ่มตัวอย่างแบบ Cluster / Multi-stage sampling (เช่น สุ่มอำเภอแล้วสุ่มหมู่บ้าน) ค่าเริ่มต้น = 1 คือไม่มีผลจากการสุ่มแบบกลุ่ม งานสำรวจสาธารณสุขทั่วไปมักใช้ 1.5–2.0','Use this for cluster / multi-stage sampling (e.g. sampling districts, then villages). Default = 1 means no cluster effect. Public health surveys commonly use 1.5–2.0.')+'</p>'+
       '</div>';
-    html += '<div class="form-actions"><button type="button" class="btn-reset" id="resetBtn">↺ ล้างค่า / ตั้งค่าเริ่มต้น</button></div>';
+    html += '<div class="form-actions"><button type="button" class="btn-reset" id="resetBtn">↺ '+L('ล้างค่า / ตั้งค่าเริ่มต้น','Reset to defaults')+'</button></div>';
     return html;
   }
 
@@ -917,11 +994,11 @@
   /* ===================== HEADER RENDER ===================== */
   function renderHeader(design){
     designHeader.innerHTML =
-      '<div class="dh-eyebrow">'+GROUP_LABELS[design.group].th+' · '+design.formulaName+'</div>'+
-      '<h2>'+design.title+'</h2>'+
-      '<div class="dh-en">'+design.titleEn+'</div>'+
-      '<p>'+design.desc+'</p>'+
-      '<div class="dh-citation">อ้างอิง: '+design.citation+'</div>';
+      '<div class="dh-eyebrow">'+L(GROUP_LABELS[design.group].th, GROUP_LABELS[design.group].en)+' · '+L(design.formulaName, design.formulaNameEn)+'</div>'+
+      '<h2>'+L(design.title, design.titleEn)+'</h2>'+
+      '<div class="dh-en">'+L(design.titleEn, design.title)+'</div>'+
+      '<p>'+L(design.desc, design.descEn)+'</p>'+
+      '<div class="dh-citation">'+L('อ้างอิง','Reference')+': '+design.citation+'</div>';
   }
 
   /* ===================== CALCULATE + RESULT RENDER ===================== */
@@ -968,7 +1045,7 @@
     try{
       result = design.compute(fv, common);
     }catch(err){
-      result = {kind:design.kind, error:'เกิดข้อผิดพลาดในการคำนวณ กรุณาตรวจสอบค่าที่กรอก'};
+      result = {kind:design.kind, error:L('เกิดข้อผิดพลาดในการคำนวณ กรุณาตรวจสอบค่าที่กรอก','A calculation error occurred. Please check the values entered.')};
     }
     lastResultCtx = {design:design, result:result, common:common, fv:fv};
     renderResult(design, result, common);
@@ -977,13 +1054,13 @@
   function adjNotesHTML(adj){
     var notes = '';
     if(adj.fpcApplied){
-      notes += '<div class="result-note"><strong>ปรับด้วย Finite Population Correction</strong> — จาก n₀ = '+fmtInt(adj.n0)+' เป็น n = '+fmtInt(adj.nFPC)+'</div>';
+      notes += '<div class="result-note"><strong>'+L('ปรับด้วย Finite Population Correction','Adjusted with Finite Population Correction')+'</strong> — '+L('จาก n₀ = '+fmtInt(adj.n0)+' เป็น n = '+fmtInt(adj.nFPC),'from n₀ = '+fmtInt(adj.n0)+' to n = '+fmtInt(adj.nFPC))+'</div>';
     }
     if(adj.nrApplied){
-      notes += '<div class="result-note"><strong>ปรับชดเชยข้อมูลสูญหาย</strong> — เพิ่มขนาดตัวอย่างเป็น '+fmtInt(adj.nAfterNR)+' ราย</div>';
+      notes += '<div class="result-note"><strong>'+L('ปรับชดเชยข้อมูลสูญหาย','Adjusted for non-response')+'</strong> — '+L('เพิ่มขนาดตัวอย่างเป็น '+fmtInt(adj.nAfterNR)+' ราย','sample size increased to '+fmtInt(adj.nAfterNR)+' participants')+'</div>';
     }
     if(adj.deffApplied){
-      notes += '<div class="result-note"><strong>ปรับด้วย Design Effect (×'+fmt(adj.deffVal,1)+')</strong> — ขนาดตัวอย่างสุดท้าย = '+fmtInt(adj.nFinal)+' ราย</div>';
+      notes += '<div class="result-note"><strong>'+L('ปรับด้วย Design Effect','Adjusted with Design Effect')+' (×'+fmt(adj.deffVal,1)+')</strong> — '+L('ขนาดตัวอย่างสุดท้าย = '+fmtInt(adj.nFinal)+' ราย','final sample size = '+fmtInt(adj.nFinal)+' participants')+'</div>';
     }
     return notes;
   }
@@ -994,20 +1071,21 @@
       return;
     }
     var html = '';
+    var unit = L('ราย','participants');
 
     if(result.kind==='single'){
-      html += '<div class="result-hero"><span class="result-hero-label">จำนวนตัวอย่างที่ต้องการทั้งหมด</span>'+
-        '<span class="result-hero-num">'+fmtInt(result.adj.nFinal)+'<span class="unit">ราย</span></span></div>';
+      html += '<div class="result-hero"><span class="result-hero-label">'+L('จำนวนตัวอย่างที่ต้องการทั้งหมด','Total required sample size')+'</span>'+
+        '<span class="result-hero-num">'+fmtInt(result.adj.nFinal)+'<span class="unit">'+unit+'</span></span></div>';
       html += adjNotesHTML(result.adj);
     }
     else if(result.kind==='twoGroup'){
       var perGroup = ceilOrDash(result.adj.nFinal);
       var totalN = perGroup!==null ? perGroup*2 : null;
-      html += '<div class="result-hero"><span class="result-hero-label">ขนาดตัวอย่างรวมทั้งสองกลุ่ม</span>'+
-        '<span class="result-hero-num">'+(totalN!==null?totalN.toLocaleString('en-US'):'—')+'<span class="unit">ราย</span></span></div>';
+      html += '<div class="result-hero"><span class="result-hero-label">'+L('ขนาดตัวอย่างรวมทั้งสองกลุ่ม','Total sample size (both groups)')+'</span>'+
+        '<span class="result-hero-num">'+(totalN!==null?totalN.toLocaleString('en-US'):'—')+'<span class="unit">'+unit+'</span></span></div>';
       html += '<div class="result-split">'+
-        '<div class="result-chip"><div class="rc-label">ต่อกลุ่ม (Per group)</div><div class="rc-val">'+(perGroup!==null?perGroup.toLocaleString('en-US'):'—')+' ราย</div></div>'+
-        '<div class="result-chip"><div class="rc-label">จำนวนกลุ่ม</div><div class="rc-val">2 กลุ่ม</div></div>'+
+        '<div class="result-chip"><div class="rc-label">'+L('ต่อกลุ่ม','Per group')+'</div><div class="rc-val">'+(perGroup!==null?perGroup.toLocaleString('en-US'):'—')+' '+unit+'</div></div>'+
+        '<div class="result-chip"><div class="rc-label">'+L('จำนวนกลุ่ม','Number of groups')+'</div><div class="rc-val">2 '+L('กลุ่ม','groups')+'</div></div>'+
         '</div>';
       if(result.extraInfo){
         html += '<div class="result-note">'+result.extraInfo+'</div>';
@@ -1015,26 +1093,26 @@
       html += adjNotesHTML(result.adj);
     }
     else if(result.kind==='diagnostic'){
-      html += '<div class="result-hero"><span class="result-hero-label">ขนาดตัวอย่างรวมที่ต้องเก็บ (ปรับตามความชุกของโรค)</span>'+
-        '<span class="result-hero-num">'+fmtInt(result.adj.nFinal)+'<span class="unit">ราย</span></span></div>';
+      html += '<div class="result-hero"><span class="result-hero-label">'+L('ขนาดตัวอย่างรวมที่ต้องเก็บ (ปรับตามความชุกของโรค)','Total sample size to collect (adjusted for prevalence)')+'</span>'+
+        '<span class="result-hero-num">'+fmtInt(result.adj.nFinal)+'<span class="unit">'+unit+'</span></span></div>';
       html += '<div class="result-split">'+
-        '<div class="result-chip"><div class="rc-label">กลุ่มเป็นโรค (ขั้นต่ำ)</div><div class="rc-val">'+fmtInt(result.nDis)+' ราย</div></div>'+
-        '<div class="result-chip"><div class="rc-label">กลุ่มไม่เป็นโรค (ขั้นต่ำ)</div><div class="rc-val">'+fmtInt(result.nNon)+' ราย</div></div>'+
+        '<div class="result-chip"><div class="rc-label">'+L('กลุ่มเป็นโรค (ขั้นต่ำ)','Diseased group (minimum)')+'</div><div class="rc-val">'+fmtInt(result.nDis)+' '+unit+'</div></div>'+
+        '<div class="result-chip"><div class="rc-label">'+L('กลุ่มไม่เป็นโรค (ขั้นต่ำ)','Non-diseased group (minimum)')+'</div><div class="rc-val">'+fmtInt(result.nNon)+' '+unit+'</div></div>'+
         '</div>';
       html += adjNotesHTML(result.adj);
     }
     else if(result.kind==='regression'){
-      html += '<div class="result-hero"><span class="result-hero-label">ขนาดตัวอย่างขั้นต่ำที่แนะนำ</span>'+
-        '<span class="result-hero-num">'+fmtInt(result.adj.nFinal)+'<span class="unit">ราย</span></span></div>';
+      html += '<div class="result-hero"><span class="result-hero-label">'+L('ขนาดตัวอย่างขั้นต่ำที่แนะนำ','Recommended minimum sample size')+'</span>'+
+        '<span class="result-hero-num">'+fmtInt(result.adj.nFinal)+'<span class="unit">'+unit+'</span></span></div>';
       html += '<div class="result-split">'+
-        '<div class="result-chip"><div class="rc-label">ทดสอบ R² โดยรวม</div><div class="rc-val">'+fmtInt(result.nOverall)+' ราย</div></div>'+
-        '<div class="result-chip"><div class="rc-label">ทดสอบตัวแปรแต่ละตัว</div><div class="rc-val">'+fmtInt(result.nIndividual)+' ราย</div></div>'+
+        '<div class="result-chip"><div class="rc-label">'+L('ทดสอบ R² โดยรวม','Testing overall R²')+'</div><div class="rc-val">'+fmtInt(result.nOverall)+' '+unit+'</div></div>'+
+        '<div class="result-chip"><div class="rc-label">'+L('ทดสอบตัวแปรแต่ละตัว','Testing individual predictors')+'</div><div class="rc-val">'+fmtInt(result.nIndividual)+' '+unit+'</div></div>'+
         '</div>';
-      html += '<div class="result-note"><strong>⚠️ แนวทางโดยประมาณ (rule of thumb)</strong> — ไม่ใช่การคำนวณอำนาจการทดสอบที่แม่นยำ หากต้องการความแม่นยำสูงควรระบุค่า Effect size และคำนวณด้วยโปรแกรมเฉพาะทาง เช่น G*Power</div>';
+      html += '<div class="result-note"><strong>⚠️ '+L('แนวทางโดยประมาณ (rule of thumb)','Approximate guideline (rule of thumb)')+'</strong> — '+L('ไม่ใช่การคำนวณอำนาจการทดสอบที่แม่นยำ หากต้องการความแม่นยำสูงควรระบุค่า Effect size และคำนวณด้วยโปรแกรมเฉพาะทาง เช่น G*Power','This is not a precise power calculation. For higher precision, specify an effect size and use specialized software such as G*Power.')+'</div>';
       html += adjNotesHTML(result.adj);
     }
 
-    html += '<details class="breakdown" open><summary>แสดงวิธีคำนวณ (สำหรับใช้อ้างอิงในบทที่ 3)</summary>'+
+    html += '<details class="breakdown" open><summary>'+L('แสดงวิธีคำนวณ (สำหรับใช้อ้างอิงในบทที่ 3)','Show calculation steps (ready for your methodology chapter)')+'</summary>'+
       '<div class="breakdown-body">'+result.breakdown+'</div></details>';
 
     resultArea.innerHTML = html;
@@ -1049,37 +1127,68 @@
   }
 
   document.getElementById('copyBtn').addEventListener('click', function(){
-    if(!lastResultCtx || lastResultCtx.result.error){ toast('ยังไม่มีผลลัพธ์ที่สามารถคัดลอกได้'); return; }
+    if(!lastResultCtx || lastResultCtx.result.error){ toast(L('ยังไม่มีผลลัพธ์ที่สามารถคัดลอกได้','No result available to copy yet.')); return; }
     var d = lastResultCtx.design, r = lastResultCtx.result;
+    var unit = L('ราย','participants');
     var lines = [];
-    lines.push('Sample Simple — ผลการคำนวณขนาดตัวอย่าง');
-    lines.push('รูปแบบการศึกษา: '+d.title+' ('+d.titleEn+')');
-    lines.push('สูตรที่ใช้: '+d.formulaName+' — อ้างอิง: '+d.citation);
+    lines.push(L('Sample Simple — ผลการคำนวณขนาดตัวอย่าง','Sample Simple — Sample Size Calculation Result'));
+    lines.push(L('รูปแบบการศึกษา','Study design')+': '+L(d.title,d.titleEn)+' ('+L(d.titleEn,d.title)+')');
+    lines.push(L('สูตรที่ใช้','Formula used')+': '+L(d.formulaName,d.formulaNameEn)+' — '+L('อ้างอิง','Reference')+': '+d.citation);
     if(r.kind==='single'){
-      lines.push('ขนาดตัวอย่างที่ต้องการ: '+fmtInt(r.adj.nFinal)+' ราย');
+      lines.push(L('ขนาดตัวอย่างที่ต้องการ','Required sample size')+': '+fmtInt(r.adj.nFinal)+' '+unit);
     } else if(r.kind==='twoGroup'){
       var pg = ceilOrDash(r.adj.nFinal);
-      lines.push('ขนาดตัวอย่างต่อกลุ่ม: '+(pg!==null?pg:'—')+' ราย');
-      lines.push('ขนาดตัวอย่างรวม 2 กลุ่ม: '+(pg!==null?pg*2:'—')+' ราย');
+      lines.push(L('ขนาดตัวอย่างต่อกลุ่ม','Sample size per group')+': '+(pg!==null?pg:'—')+' '+unit);
+      lines.push(L('ขนาดตัวอย่างรวม 2 กลุ่ม','Total sample size (2 groups)')+': '+(pg!==null?pg*2:'—')+' '+unit);
     } else if(r.kind==='diagnostic'){
-      lines.push('กลุ่มเป็นโรคขั้นต่ำ: '+fmtInt(r.nDis)+' ราย');
-      lines.push('กลุ่มไม่เป็นโรคขั้นต่ำ: '+fmtInt(r.nNon)+' ราย');
-      lines.push('ขนาดตัวอย่างรวม (ปรับตามความชุก): '+fmtInt(r.adj.nFinal)+' ราย');
+      lines.push(L('กลุ่มเป็นโรคขั้นต่ำ','Minimum diseased group')+': '+fmtInt(r.nDis)+' '+unit);
+      lines.push(L('กลุ่มไม่เป็นโรคขั้นต่ำ','Minimum non-diseased group')+': '+fmtInt(r.nNon)+' '+unit);
+      lines.push(L('ขนาดตัวอย่างรวม (ปรับตามความชุก)','Total sample size (prevalence-adjusted)')+': '+fmtInt(r.adj.nFinal)+' '+unit);
     } else if(r.kind==='regression'){
-      lines.push('ขนาดตัวอย่างขั้นต่ำที่แนะนำ (แนวทางโดยประมาณ): '+fmtInt(r.adj.nFinal)+' ราย');
+      lines.push(L('ขนาดตัวอย่างขั้นต่ำที่แนะนำ (แนวทางโดยประมาณ)','Recommended minimum sample size (approximate)')+': '+fmtInt(r.adj.nFinal)+' '+unit);
     }
     lines.push('');
-    lines.push('คำนวณโดยโปรแกรม Sample Simple');
-    lines.push('พัฒนาโดย Assoc. Prof. Ratchadaporn Ungcharoen, Faculty of Public Health, Kasetsart University 2026');
+    lines.push(L('คำนวณโดยโปรแกรม Sample Simple','Calculated using Sample Simple'));
+    lines.push(L('พัฒนาโดย Assoc. Prof. Ratchadaporn Ungcharoen, Faculty of Public Health, Kasetsart University 2026','Developed by Assoc. Prof. Ratchadaporn Ungcharoen, Faculty of Public Health, Kasetsart University 2026'));
     var text = lines.join('\n');
     try{
-      navigator.clipboard.writeText(text).then(function(){ toast('คัดลอกสรุปผลแล้ว'); }, function(){ toast('ไม่สามารถคัดลอกอัตโนมัติได้ กรุณาคัดลอกด้วยตนเอง'); });
-    }catch(e){ toast('ไม่สามารถคัดลอกอัตโนมัติได้ กรุณาคัดลอกด้วยตนเอง'); }
+      navigator.clipboard.writeText(text).then(function(){ toast(L('คัดลอกสรุปผลแล้ว','Summary copied')); }, function(){ toast(L('ไม่สามารถคัดลอกอัตโนมัติได้ กรุณาคัดลอกด้วยตนเอง','Could not copy automatically. Please copy manually.')); });
+    }catch(e){ toast(L('ไม่สามารถคัดลอกอัตโนมัติได้ กรุณาคัดลอกด้วยตนเอง','Could not copy automatically. Please copy manually.')); }
   });
 
   document.getElementById('printBtn').addEventListener('click', function(){
     window.print();
   });
+
+  /* ===================== STATIC CHROME UPDATE ===================== */
+  function updateStaticChrome(){
+    document.getElementById('brandTagline').textContent = T('tagline');
+    document.getElementById('panelInputTitle').textContent = T('panelInput');
+    document.getElementById('panelInputTitleEn').textContent = T('panelInputEn');
+    document.getElementById('panelResultTitle').textContent = T('panelResult');
+    document.getElementById('panelResultTitleEn').textContent = T('panelResultEn');
+    document.getElementById('copyBtnLabel').textContent = T('copyBtn');
+    document.getElementById('printBtnLabel').textContent = T('printBtn');
+    document.getElementById('creditLine1').innerHTML = T('creditLine1');
+    document.getElementById('footerLine1').innerHTML = T('footerLine1');
+    document.getElementById('aboutTitle').innerHTML = T('aboutTitle');
+    document.getElementById('refTitle').innerHTML = T('refTitle');
+    document.getElementById('aboutBody').innerHTML = T('aboutBody');
+    document.getElementById('langBtnTh').classList.toggle('active', LANG==='th');
+    document.getElementById('langBtnEn').classList.toggle('active', LANG==='en');
+    document.documentElement.lang = LANG;
+  }
+
+  document.getElementById('langBtnTh').addEventListener('click', function(){ setLang('th'); });
+  document.getElementById('langBtnEn').addEventListener('click', function(){ setLang('en'); });
+  function setLang(lang){
+    if(lang===LANG) return;
+    LANG = lang;
+    try{ localStorage.setItem('samplesimple_lang', lang); }catch(e){}
+    updateStaticChrome();
+    buildSidebarHTML();
+    renderDesign(designMap[activeId]);
+  }
 
   /* ===================== INIT ===================== */
   function renderDesign(design){
@@ -1087,7 +1196,9 @@
     buildForm(design);
     calculate();
   }
-  setActiveDesign(activeId);
+  updateStaticChrome();
+  buildSidebarHTML();
+  renderDesign(designMap[activeId]);
 
 })();
 </script>
