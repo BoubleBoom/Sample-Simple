@@ -1122,6 +1122,13 @@
   }
 
   /* ===================== COPY / PRINT ===================== */
+  function htmlToText(html){
+    var tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    var text = tmp.innerText || tmp.textContent || '';
+    return text.replace(/\n{3,}/g, '\n\n').trim();
+  }
+
   function toast(msg){
     var t = document.getElementById('toast');
     t.textContent = msg;
@@ -1150,6 +1157,9 @@
     } else if(r.kind==='regression'){
       lines.push(L('ขนาดตัวอย่างขั้นต่ำที่แนะนำ (แนวทางโดยประมาณ)','Recommended minimum sample size (approximate)')+': '+fmtInt(r.adj.nFinal)+' '+unit);
     }
+    lines.push('');
+    lines.push(L('วิธีคำนวณ (สำหรับใช้อ้างอิงในบทที่ 3):','Calculation steps (for your methodology chapter):'));
+    lines.push(htmlToText(r.breakdown));
     lines.push('');
     lines.push(L('คำนวณโดยโปรแกรม Sample Simple','Calculated using Sample Simple'));
     lines.push(L('พัฒนาโดย Assoc. Prof. Ratchadaporn Ungcharoen, Faculty of Public Health, Kasetsart University 2026','Developed by Assoc. Prof. Ratchadaporn Ungcharoen, Faculty of Public Health, Kasetsart University 2026'));
