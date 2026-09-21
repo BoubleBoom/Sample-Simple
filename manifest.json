@@ -1,0 +1,18 @@
+{
+  "name": "Sample Simple — โปรแกรมคำนวณขนาดตัวอย่าง",
+  "short_name": "Sample Simple",
+  "description": "โปรแกรมคำนวณขนาดตัวอย่างเพื่อการวิจัยด้านสาธารณสุขและวิทยาศาสตร์สุขภาพ",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#F6FBF7",
+  "theme_color": "#1B4332",
+  "lang": "th",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
