@@ -150,6 +150,13 @@
   .f-sym{font-family:var(--font-display);font-style:italic;color:var(--forest-2);}
   .f-conclusion{margin-top:12px;padding-top:12px;border-top:1px dashed var(--border-strong);font-size:14px;color:var(--text);font-weight:500;line-height:1.7;}
 
+  .citation-box{margin-top:14px;background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:10px;padding:14px 16px;}
+  .citation-title{font-size:13.5px;font-weight:600;color:var(--forest-2);margin-bottom:8px;}
+  .citation-sub{font-size:11.5px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.3px;margin:10px 0 4px;}
+  .citation-sub:first-of-type{margin-top:0;}
+  .citation-line{font-size:13px;color:var(--text);line-height:1.65;}
+  .citation-hang{padding-left:1.5em;text-indent:-1.5em;margin-top:6px;}
+
   .result-actions{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;}
   .btn-secondary{background:var(--surface);border:1px solid var(--border-strong);color:var(--green);padding:9px 16px;border-radius:9px;cursor:pointer;font-size:13.5px;font-weight:500;display:inline-flex;align-items:center;gap:6px;transition:all .15s ease;box-shadow:var(--shadow-btn);}
   .btn-secondary:hover{background:var(--sage-soft);border-color:var(--green-bright);}
@@ -200,7 +207,7 @@
       </div>
       <div class="topbar-credit">
         <span id="creditLine1">พัฒนาโดย <strong>Assoc. Prof. Ratchadaporn Ungcharoen</strong></span><br>
-        Faculty of Public Health, Kasetsart University, 2026
+        Faculty of Public Health, Kasetsart University 2026
       </div>
     </div>
   </header>
@@ -255,7 +262,7 @@
 
   <footer class="app-footer">
     <p id="footerLine1">Sample Simple ออกแบบและพัฒนาโดย <strong>Assoc. Prof. Ratchadaporn Ungcharoen</strong></p>
-    <p>Faculty of Public Health, Kasetsart University, 2026</p>
+    <p>Faculty of Public Health, Kasetsart University 2026</p>
     <p id="copyrightLine" style="margin-top:10px;font-size:12px;">© 2026 Ratchadaporn Ungcharoen. สงวนลิขสิทธิ์ตามพระราชบัญญัติลิขสิทธิ์ พ.ศ. 2537</p>
   </footer>
 </div>
@@ -277,7 +284,7 @@
       panelInput:'ข้อมูลนำเข้า', panelInputEn:'Input parameters',
       panelResult:'ผลการคำนวณ', panelResultEn:'Result',
       copyBtn:'คัดลอกสรุปผล', printBtn:'พิมพ์ / บันทึก PDF',
-      creditLine1:'พัฒนาโดย <strong> รศ.ดร.รัชฎาภรณ์ อึ้งเจริญ</strong>',
+      creditLine1:'พัฒนาโดย <strong>Assoc. Prof. Ratchadaporn Ungcharoen</strong>',
       footerLine1:'Sample Simple ออกแบบและพัฒนาโดย <strong>Assoc. Prof. Ratchadaporn Ungcharoen</strong>',
       copyrightLine:'© 2026 Ratchadaporn Ungcharoen. สงวนลิขสิทธิ์ตามพระราชบัญญัติลิขสิทธิ์ พ.ศ. 2537',
       aboutTitle:'เกี่ยวกับสูตรและข้อมูลอ้างอิง', refTitle:'บรรณานุกรม / เอกสารอ้างอิง (References)',
@@ -303,6 +310,46 @@
     }
   };
   function T(key){ return UI[LANG][key]; }
+
+  /* ===================== APA 7th CITATIONS ===================== */
+  var SOFTWARE_CITATION = {
+    th:{
+      intext:'รัชฎาภรณ์ อึ้งเจริญ และ พัสกร องอาจ, 2569',
+      full:'รัชฎาภรณ์ อึ้งเจริญ และ พัสกร องอาจ. (2569). <em>Sample Simple: โปรแกรมคำนวณขนาดตัวอย่างเพื่อการวิจัยด้านสาธารณสุขและวิทยาศาสตร์สุขภาพ</em> [ซอฟต์แวร์คอมพิวเตอร์]. https://boubleboom.github.io/Sample-Simple/'
+    },
+    en:{
+      intext:'Ungcharoen &amp; Ong-art, 2026',
+      full:'Ungcharoen, R., &amp; Ong-art, P. (2026). <em>Sample Simple: Sample size calculator for public health and health science research</em> [Computer software]. https://boubleboom.github.io/Sample-Simple/'
+    }
+  };
+  // Full APA 7th reference + in-text form for the specific formula/author each design cites.
+  var FORMULA_CITATION = {
+    prop1:      { intext:'Cochran, 1977', full:'Cochran, W. G. (1977). <em>Sampling techniques</em> (3rd ed.). John Wiley &amp; Sons.' },
+    krejcie:    { intext:'Krejcie &amp; Morgan, 1970', full:'Krejcie, R. V., &amp; Morgan, D. W. (1970). Determining sample size for research activities. <em>Educational and Psychological Measurement, 30</em>(3), 607–610.' },
+    yamane:     { intext:'Yamane, 1967', full:'Yamane, T. (1967). <em>Statistics: An introductory analysis</em> (2nd ed.). Harper and Row.' },
+    mean1:      { intext:'Cochran, 1977', full:'Cochran, W. G. (1977). <em>Sampling techniques</em> (3rd ed.). John Wiley &amp; Sons.' },
+    twoprop:    { intext:'Fleiss et al., 2003', full:'Fleiss, J. L., Levin, B., &amp; Paik, M. C. (2003). <em>Statistical methods for rates and proportions</em> (3rd ed.). John Wiley &amp; Sons.' },
+    twomean:    { intext:'Daniel &amp; Cross, 2013', full:'Daniel, W. W., &amp; Cross, C. L. (2013). <em>Biostatistics: A foundation for analysis in the health sciences</em> (10th ed.). Wiley.' },
+    onemean_test:{ intext:'Daniel &amp; Cross, 2013', full:'Daniel, W. W., &amp; Cross, C. L. (2013). <em>Biostatistics: A foundation for analysis in the health sciences</em> (10th ed.). Wiley.' },
+    casecontrol:{ intext:'Schlesselman, 1982', full:'Schlesselman, J. J. (1982). <em>Case-control studies: Design, conduct, analysis</em>. Oxford University Press.' },
+    cohort:     { intext:'Fleiss et al., 2003', full:'Fleiss, J. L., Levin, B., &amp; Paik, M. C. (2003). <em>Statistical methods for rates and proportions</em> (3rd ed.). John Wiley &amp; Sons.' },
+    corr:       { intext:'Cohen, 1988', full:'Cohen, J. (1988). <em>Statistical power analysis for the behavioral sciences</em> (2nd ed.). Lawrence Erlbaum Associates.' },
+    diagnostic: { intext:'Buderer, 1996', full:'Buderer, N. M. F. (1996). Statistical methodology: I. Incorporating the prevalence of disease into the sample size calculation for sensitivity and specificity. <em>Academic Emergency Medicine, 3</em>(9), 895–900.' },
+    regression: { intext:'Green, 1991', full:'Green, S. B. (1991). How many subjects does it take to do a regression analysis? <em>Multivariate Behavioral Research, 26</em>(3), 499–510.' }
+  };
+  function citationBoxHTML(design){
+    var sw = SOFTWARE_CITATION[LANG];
+    var fc = FORMULA_CITATION[design.id];
+    var intextLine = L('คำนวณด้วยสูตรของ ','Calculated using the formula of ')+'('+fc.intext+') '+L('โดยใช้โปรแกรม','using the')+' Sample Simple ('+sw.intext+')';
+    return '<div class="citation-box">'+
+      '<div class="citation-title">📚 '+L('การอ้างอิง (สำหรับวางในบทที่ 3 และบรรณานุกรม)','Citation (for your methodology chapter and reference list)')+'</div>'+
+      '<div class="citation-sub">'+L('การอ้างอิงในเนื้อหา (In-text citation)','In-text citation')+'</div>'+
+      '<div class="citation-line">'+intextLine+'</div>'+
+      '<div class="citation-sub">'+L('รายการอ้างอิง (Reference list)','Reference list')+'</div>'+
+      '<div class="citation-line citation-hang">'+fc.full+'</div>'+
+      '<div class="citation-line citation-hang">'+sw.full+'</div>'+
+      '</div>';
+  }
 
   /* ===================== MATH HELPERS ===================== */
   function normSinv(p){
@@ -1123,6 +1170,8 @@
       html += adjNotesHTML(result.adj);
     }
 
+    html += citationBoxHTML(design);
+
     html += '<details class="breakdown" open><summary>'+L('แสดงวิธีคำนวณ (สำหรับใช้อ้างอิงในบทที่ 3)','Show calculation steps (ready for your methodology chapter)')+'</summary>'+
       '<div class="breakdown-body">'+result.breakdown+'</div></details>';
 
@@ -1169,8 +1218,14 @@
     lines.push(L('วิธีคำนวณ (สำหรับใช้อ้างอิงในบทที่ 3):','Calculation steps (for your methodology chapter):'));
     lines.push(htmlToText(r.breakdown));
     lines.push('');
-    lines.push(L('คำนวณโดยโปรแกรม Sample Simple','Calculated using Sample Simple'));
-    lines.push(L('พัฒนาโดย Assoc. Prof. Ratchadaporn Ungcharoen, Faculty of Public Health, Kasetsart University 2026','Developed by Assoc. Prof. Ratchadaporn Ungcharoen, Faculty of Public Health, Kasetsart University 2026'));
+    lines.push(L('การอ้างอิง (สำหรับวางในบทที่ 3 และบรรณานุกรม):','Citation (for your methodology chapter and reference list):'));
+    var swC = SOFTWARE_CITATION[LANG];
+    var fcC = FORMULA_CITATION[d.id];
+    lines.push(L('การอ้างอิงในเนื้อหา (In-text citation): ','In-text citation: ')+L('คำนวณด้วยสูตรของ ','Calculated using the formula of ')+'('+htmlToText(fcC.intext)+') '+L('โดยใช้โปรแกรม','using the')+' Sample Simple ('+htmlToText(swC.intext)+')');
+    lines.push('');
+    lines.push(L('รายการอ้างอิง (Reference list):','Reference list:'));
+    lines.push(htmlToText(fcC.full));
+    lines.push(htmlToText(swC.full));
     var text = lines.join('\n');
     try{
       navigator.clipboard.writeText(text).then(function(){ toast(L('คัดลอกสรุปผลแล้ว','Summary copied')); }, function(){ toast(L('ไม่สามารถคัดลอกอัตโนมัติได้ กรุณาคัดลอกด้วยตนเอง','Could not copy automatically. Please copy manually.')); });
